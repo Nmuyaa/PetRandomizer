@@ -1,216 +1,55 @@
-local Players = game:GetService("Players")
-local player = Players.LocalPlayer
-local playerGui = player:WaitForChild("PlayerGui")
-local Workspace = game:GetService("Workspace")
+local Players = game:GetService("Players") local player = Players.LocalPlayer local playerGui = player:WaitForChild("PlayerGui") local Workspace = game:GetService("Workspace")
 
--- GUI Setup
-local gui = Instance.new("ScreenGui", playerGui)
-gui.Name = "EggRandomizerGUI"
+-- GUI Setup local gui = Instance.new("ScreenGui", playerGui) gui.Name = "EggRandomizerGUI"
 
-local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0, 300, 0, 130)
-frame.Position = UDim2.new(0, 60, 0, 60)
-frame.BackgroundColor3 = Color3.fromRGB(120, 80, 40)
-frame.Active = true
-frame.Draggable = true
+local frame = Instance.new("Frame", gui) frame.Size = UDim2.new(0, 300, 0, 130) frame.Position = UDim2.new(0, 60, 0, 60) frame.BackgroundColor3 = Color3.fromRGB(120, 80, 40) frame.Active = true frame.Draggable = true
 
-local header = Instance.new("Frame", frame)
-header.Size = UDim2.new(1, 0, 0, 30)
-header.BackgroundColor3 = Color3.fromRGB(120, 170, 80)
+local header = Instance.new("Frame", frame) header.Size = UDim2.new(1, 0, 0, 30) header.BackgroundColor3 = Color3.fromRGB(120, 170, 80)
 
-local minimize = Instance.new("TextButton", header)
-minimize.Text = "-"
-minimize.Size = UDim2.new(0, 30, 0, 25)
-minimize.Position = UDim2.new(1, -35, 0, 2)
-minimize.Font = Enum.Font.Arcade
-minimize.TextSize = 18
-minimize.BackgroundColor3 = Color3.fromRGB(210, 60, 60)
-minimize.TextColor3 = Color3.new(1, 1, 1)
+local minimize = Instance.new("TextButton", header) minimize.Text = "-" minimize.Size = UDim2.new(0, 30, 0, 25) minimize.Position = UDim2.new(1, -35, 0, 2) minimize.Font = Enum.Font.Arcade minimize.TextSize = 18 minimize.BackgroundColor3 = Color3.fromRGB(210, 60, 60) minimize.TextColor3 = Color3.new(1, 1, 1)
 
-local mini = Instance.new("TextButton", gui)
-mini.Size = UDim2.new(0, 150, 0, 30)
-mini.Position = frame.Position
-mini.Text = "EggRandomizer"
-mini.Font = Enum.Font.Arcade
-mini.BackgroundColor3 = Color3.fromRGB(120, 170, 80)
-mini.TextColor3 = Color3.new(1, 1, 1)
-mini.TextSize = 16
-mini.Visible = false
+local mini = Instance.new("TextButton", gui) mini.Size = UDim2.new(0, 150, 0, 30) mini.Position = frame.Position mini.Text = "EggRandomizer" mini.Font = Enum.Font.Arcade mini.BackgroundColor3 = Color3.fromRGB(120, 170, 80) mini.TextColor3 = Color3.new(1, 1, 1) mini.TextSize = 16 mini.Visible = false
 
-minimize.MouseButton1Click:Connect(function()
-	frame.Visible = false
-	mini.Visible = true
-end)
+minimize.MouseButton1Click:Connect(function() frame.Visible = false mini.Visible = true end)
 
-mini.MouseButton1Click:Connect(function()
-	frame.Visible = true
-	mini.Visible = false
-end)
+mini.MouseButton1Click:Connect(function() frame.Visible = true mini.Visible = false end)
 
-local rerollBtn = Instance.new("TextButton", frame)
-rerollBtn.Text = "[B] Reroll Pet"
-rerollBtn.Size = UDim2.new(1, -20, 0, 40)
-rerollBtn.Position = UDim2.new(0, 10, 0, 60)
-rerollBtn.Font = Enum.Font.Arcade
-rerollBtn.TextColor3 = Color3.new(1, 1, 1)
-rerollBtn.BackgroundColor3 = Color3.fromRGB(100, 150, 255)
+local espToggle = Instance.new("TextButton", frame) espToggle.Text = "[A] ESP: OFF" espToggle.Size = UDim2.new(1, -20, 0, 30) espToggle.Position = UDim2.new(0, 10, 0, 20) espToggle.Font = Enum.Font.Arcade espToggle.TextColor3 = Color3.new(1, 1, 1) espToggle.BackgroundColor3 = Color3.fromRGB(210, 60, 60)
 
--- Egg pet data
-local eggs = {
-	["Common Egg"] = {
-		{ name = "Golden Lab", weight = 33.3 },
-		{ name = "Dog", weight = 33.3 },
-		{ name = "Bunny", weight = 33.3 },
-	},
-	["Uncommon Egg"] = {
-		{ name = "Black Bunny", weight = 25 },
-		{ name = "Chicken", weight = 25 },
-		{ name = "Cat", weight = 25 },
-		{ name = "Deer", weight = 25 },
-	},
-	["Rare Egg"] = {
-		{ name = "Orange Tabby", weight = 33.3 },
-		{ name = "Spotted Deer", weight = 25 },
-		{ name = "Pig", weight = 16.7 },
-		{ name = "Rooster", weight = 16.7 },
-		{ name = "Monkey", weight = 8.3 },
-	},
-	["Legendary Egg"] = {
-		{ name = "Cow", weight = 42.6 },
-		{ name = "Silver Monkey", weight = 42.6 },
-		{ name = "Sea Otter", weight = 10.6 },
-		{ name = "Turtle", weight = 2.1 },
-		{ name = "Polar Bear", weight = 2.1 },
-	},
-	["Mythical Egg"] = {
-		{ name = "Grey Mouse", weight = 35.7 },
-		{ name = "Brown Mouse", weight = 26.8 },
-		{ name = "Squirrel", weight = 26.8 },
-		{ name = "Red Giant Ant", weight = 8.9 },
-		{ name = "Red Fox", weight = 1.8 },
-	},
-	["Bug Egg"] = {
-		{ name = "Snail", weight = 40 },
-		{ name = "Giant Ant", weight = 30 },
-		{ name = "Caterpillar", weight = 25 },
-		{ name = "Praying Mantis", weight = 4 },
-		{ name = "Dragonfly", weight = 1 },
-	},
-	["Anti‑Bee Egg"] = {
-		{ name = "Wasp", weight = 55 },
-		{ name = "Tarantula Hawk", weight = 30 },
-		{ name = "Moth", weight = 13.75 },
-		{ name = "Butterfly", weight = 1 },
-		{ name = "Disco Bee", weight = 0.25 },
-	},
-	["Common Summer Egg"] = {
-		{ name = "Starfish", weight = 50 },
-		{ name = "Seagull", weight = 25 },
-		{ name = "Crab", weight = 25 },
-	},
-	["Rare Summer Egg"] = {
-		{ name = "Flamingo", weight = 30 },
-		{ name = "Toucan", weight = 25 },
-		{ name = "Sea Turtle", weight = 20 },
-		{ name = "Orangutan", weight = 15 },
-		{ name = "Seal", weight = 10 },
-	},
-	["Paradise Egg"] = {
-		{ name = "Ostrich", weight = 40 },
-		{ name = "Peacock", weight = 30 },
-		{ name = "Capybara", weight = 21 },
-		{ name = "Scarlet Macaw", weight = 8 },
-		{ name = "Mimic Octopus", weight = 1 },
-	},
-	["Oasis Egg"] = {
-		{ name = "Meerkat", weight = 45 },
-		{ name = "Sand Snake", weight = 34.5 },
-		{ name = "Axolotl", weight = 15 },
-		{ name = "Hyacinth Macaw", weight = 5 },
-		{ name = "Fennec Fox", weight = 0.5 },
-	},
-	["Dinosaur Egg"] = {
-		{ name = "Raptor", weight = 35 },
-		{ name = "Triceratops", weight = 32.5 },
-		{ name = "Stegosaurus", weight = 28 },
-		{ name = "Pterodactyl", weight = 3 },
-		{ name = "Brontosaurus", weight = 1 },
-		{ name = "T‑Rex", weight = 0.5 },
-	},
-	["Primal Egg"] = {
-		{ name = "Parasaurolophus", weight = 35 },
-		{ name = "Iguanodon", weight = 32.5 },
-		{ name = "Pachycephalosaurus", weight = 28 },
-		{ name = "Dilophosaurus", weight = 3 },
-		{ name = "Ankylosaurus", weight = 1 },
-		{ name = "Spinosaurus", weight = 0.5 },
-	}
-}
+local rerollBtn = Instance.new("TextButton", frame) rerollBtn.Text = "[B] Reroll Pet" rerollBtn.Size = UDim2.new(1, -20, 0, 40) rerollBtn.Position = UDim2.new(0, 10, 0, 60) rerollBtn.Font = Enum.Font.Arcade rerollBtn.TextColor3 = Color3.new(1, 1, 1) rerollBtn.BackgroundColor3 = Color3.fromRGB(100, 150, 255)
 
--- Weighted pet selector
-local function getRandomPet(eggType)
-	local petList = eggs[eggType]
-	if not petList then return "Unknown Pet" end
+local espEnabled = false
 
-	local total = 0
-	for _, p in ipairs(petList) do total += p.weight end
+-- Pet data tables local eggs = { ["Common Egg"] = { { name = "Golden Lab", weight = 33.3 }, { name = "Dog", weight = 33.3 }, { name = "Bunny", weight = 33.3 }, }, ["Uncommon Egg"] = { { name = "Black Bunny", weight = 25 }, { name = "Chicken", weight = 25 }, { name = "Cat", weight = 25 }, { name = "Deer", weight = 25 }, }, ["Rare Egg"] = { { name = "Orange Tabby", weight = 33.3 }, { name = "Spotted Deer", weight = 25 }, { name = "Pig", weight = 16.7 }, { name = "Rooster", weight = 16.7 }, { name = "Monkey", weight = 8.3 }, }, ["Legendary Egg"] = { { name = "Cow", weight = 42.6 }, { name = "Silver Monkey", weight = 42.6 }, { name = "Sea Otter", weight = 10.6 }, { name = "Turtle", weight = 2.1 }, { name = "Polar Bear", weight = 2.1 }, }, ["Mythical Egg"] = { { name = "Grey Mouse", weight = 35.7 }, { name = "Brown Mouse", weight = 26.8 }, { name = "Squirrel", weight = 26.8 }, { name = "Red Giant Ant", weight = 8.9 }, { name = "Red Fox", weight = 1.8 }, }, ["Bug Egg"] = { { name = "Snail", weight = 40 }, { name = "Giant Ant", weight = 30 }, { name = "Caterpillar", weight = 25 }, { name = "Praying Mantis", weight = 4 }, { name = "Dragonfly", weight = 1 }, }, ["Anti‑Bee Egg"] = { { name = "Wasp", weight = 55 }, { name = "Tarantula Hawk", weight = 30 }, { name = "Moth", weight = 13.75 }, { name = "Butterfly", weight = 1 }, { name = "Disco Bee", weight = 0.25 }, }, ["Common Summer Egg"] = { { name = "Starfish", weight = 50 }, { name = "Seagull", weight = 25 }, { name = "Crab", weight = 25 }, }, ["Rare Summer Egg"] = { { name = "Flamingo", weight = 30 }, { name = "Toucan", weight = 25 }, { name = "Sea Turtle", weight = 20 }, { name = "Orangutan", weight = 15 }, { name = "Seal", weight = 10 }, }, ["Paradise Egg"] = { { name = "Ostrich", weight = 40 }, { name = "Peacock", weight = 30 }, { name = "Capybara", weight = 21 }, { name = "Scarlet Macaw", weight = 8 }, { name = "Mimic Octopus", weight = 1 }, }, ["Oasis Egg"] = { { name = "Meerkat", weight = 45 }, { name = "Sand Snake", weight = 34.5 }, { name = "Axolotl", weight = 15 }, { name = "Hyacinth Macaw", weight = 5 }, { name = "Fennec Fox", weight = 0.5 }, }, ["Dinosaur Egg"] = { { name = "Raptor", weight = 35 }, { name = "Triceratops", weight = 32.5 }, { name = "Stegosaurus", weight = 28 }, { name = "Pterodactyl", weight = 3 }, { name = "Brontosaurus", weight = 1 }, { name = "T‑Rex", weight = 0.5 }, }, ["Primal Egg"] = { { name = "Parasaurolophus", weight = 35 }, { name = "Iguanodon", weight = 32.5 }, { name = "Pachycephalosaurus", weight = 28 }, { name = "Dilophosaurus", weight = 3 }, { name = "Ankylosaurus", weight = 1 }, { name = "Spinosaurus", weight = 0.5 }, } }
 
-	local r = math.random() * total
-	local acc = 0
-	for _, p in ipairs(petList) do
-		acc += p.weight
-		if r <= acc then return p.name end
+local function getRandomPet(eggType) local petList = eggs[eggType] if not petList then return "???" end local totalWeight = 0 for _, pet in ipairs(petList) do totalWeight += pet.weight end local roll = math.random() * totalWeight local acc = 0 for _, pet in ipairs(petList) do acc += pet.weight if roll <= acc then return pet.name end end return petList[#petList].name end
+
+local function showESP(part, text) if not part then return end if part:FindFirstChild("EggESP") then part.EggESP:Destroy() end local esp = Instance.new("BillboardGui", part) esp.Name = "EggESP" esp.Adornee = part esp.Size = UDim2.new(0, 200, 0, 40) esp.StudsOffset = Vector3.new(0, 3, 0) esp.AlwaysOnTop = true local label = Instance.new("TextLabel", esp) label.Size = UDim2.new(1, 0, 1, 0) label.BackgroundTransparency = 1 label.TextColor3 = Color3.new(1, 1, 1) label.TextScaled = true label.Font = Enum.Font.Arcade label.Text = text end
+
+-- ESP toggle behavior espToggle.MouseButton1Click:Connect(function() espEnabled = not espEnabled espToggle.Text = "[A] ESP: " .. (espEnabled and "ON" or "OFF")
+
+for _, obj in ipairs(Workspace:GetDescendants()) do
+	if obj:IsA("BillboardGui") and obj.Name == "EggESP" then
+		obj:Destroy()
 	end
-	return petList[#petList].name
 end
 
-local function showESP(part, text)
-	if not part then return end
-	if part:FindFirstChild("EggESP") then part.EggESP:Destroy() end
-
-	local esp = Instance.new("BillboardGui", part)
-	esp.Name = "EggESP"
-	esp.Adornee = part
-	esp.Size = UDim2.new(0, 200, 0, 40)
-	esp.StudsOffset = Vector3.new(0, 3, 0)
-	esp.AlwaysOnTop = true
-
-	local label = Instance.new("TextLabel", esp)
-	label.Size = UDim2.new(1, 0, 1, 0)
-	label.BackgroundTransparency = 1
-	label.TextColor3 = Color3.new(1, 1, 1)
-	label.TextScaled = true
-	label.Font = Enum.Font.Arcade
-	label.Text = text
-end
-
--- Find egg part
-local function findEggPart()
-	for _, v in pairs(Workspace:GetChildren()) do
-		if v:IsA("BasePart") and v.Name:find("Egg") then
-			return v, v.Name
-		end
-	end
-	return nil, nil
-end
-
-rerollBtn.MouseButton1Click:Connect(function()
-	local eggPart, eggName = findEggPart()
-	local petName = getRandomPet(eggName or "Common Egg")
-	showESP(eggPart, petName)
-	print("[EggRandomizer] " .. tostring(eggName) .. " → " .. petName)
-end)
-
-for _, egg in ipairs(Workspace:GetChildren()) do
-	if egg:IsA("BasePart") and egg.Name:find("Egg") then
-		local matchedEggType = nil
-		for knownEgg in pairs(eggs) do
-			local shortName = knownEgg:gsub("%s+", ""):lower()
-			if egg.Name:lower():find(shortName) then
-				matchedEggType = knownEgg
-				break
+if espEnabled then
+	for _, egg in ipairs(Workspace:GetChildren()) do
+		if egg:IsA("BasePart") and egg.Name:lower():find("egg") then
+			local matchedType = nil
+			for knownEgg, _ in pairs(eggs) do
+				if egg.Name:lower():find(knownEgg:lower():gsub("%s+", "")) then
+					matchedType = knownEgg
+					break
+				end
 			end
+			showESP(egg, matchedType or "???")
 		end
-		showESP(egg, matchedEggType or "???")
 	end
 end
+
+end)
+
+rerollBtn.MouseButton1Click:Connect(function() for _, egg in ipairs(Workspace:GetChildren()) do if egg:IsA("BasePart") and egg.Name:lower():find("egg") then local matchedType = nil for knownEgg, _ in pairs(eggs) do if egg.Name:lower():find(knownEgg:lower():gsub("%s+", "")) then matchedType = knownEgg break end end if matchedType then local pet = getRandomPet(matchedType) if espEnabled then showESP(egg, pet) end end end end end)
+
