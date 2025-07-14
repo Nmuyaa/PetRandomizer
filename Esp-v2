@@ -1,4 +1,3 @@
--- GUI SETUP
 local gui = Instance.new("ScreenGui", localPlayer:WaitForChild("PlayerGui"))
 gui.Name = "PetPredictorUI"
 gui.ResetOnSpawn = false
@@ -7,11 +6,22 @@ gui.ResetOnSpawn = false
 local frame = Instance.new("Frame", gui)
 frame.Size = UDim2.new(0, 240, 0, 150)
 frame.Position = UDim2.new(0.5, -120, 0.3, 0)
-frame.BackgroundColor3 = Color3.fromRGB(28, 28, 40) -- Darker tone from your image
+frame.BackgroundColor3 = Color3.fromRGB(24, 21, 43) -- Dark night-sky blue
 frame.BorderSizePixel = 0
 frame.Active = true
 frame.Draggable = true
-Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 12)
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 10)
+
+-- PIXEL TEXTURE
+local tex = Instance.new("ImageLabel", frame)
+tex.Size = UDim2.new(1, 0, 1, 0)
+tex.Position = UDim2.new(0, 0, 0, 0)
+tex.Image = "rbxassetid://10877433862" -- Stardew-style pixel stars/night sky
+tex.BackgroundTransparency = 1
+tex.ImageTransparency = 0.2
+tex.ScaleType = Enum.ScaleType.Tile
+tex.TileSize = UDim2.new(0, 32, 0, 32)
+tex.ZIndex = 0
 
 -- TITLE LABEL
 local title = Instance.new("TextLabel", frame)
@@ -19,10 +29,11 @@ title.Size = UDim2.new(1, -30, 0, 30)
 title.Position = UDim2.new(0, 10, 0, 8)
 title.BackgroundTransparency = 1
 title.Text = "🐾 Pet Predictor"
-title.TextColor3 = Color3.fromRGB(255, 255, 255)
-title.Font = Enum.Font.FredokaOne -- Updated for rounded playful feel
-title.TextSize = 22
+title.TextColor3 = Color3.fromRGB(255, 255, 180)
+title.Font = Enum.Font.Arcade
+title.TextSize = 20
 title.TextXAlignment = Enum.TextXAlignment.Left
+title.ZIndex = 1
 
 -- CLOSE BUTTON
 local close = Instance.new("TextButton", frame)
@@ -30,27 +41,39 @@ close.Size = UDim2.new(0, 24, 0, 24)
 close.Position = UDim2.new(1, -30, 0, 10)
 close.Text = "X"
 close.TextColor3 = Color3.new(1, 1, 1)
-close.BackgroundColor3 = Color3.fromRGB(200, 70, 70)
-close.Font = Enum.Font.FredokaOne
+close.BackgroundColor3 = Color3.fromRGB(150, 50, 50)
+close.Font = Enum.Font.Arcade
 close.TextSize = 16
-Instance.new("UICorner", close).CornerRadius = UDim.new(0, 8)
+Instance.new("UICorner", close).CornerRadius = UDim.new(0, 6)
+close.ZIndex = 1
 
 -- PREDICT BUTTON
 local predict = Instance.new("TextButton", frame)
 predict.Size = UDim2.new(0, 180, 0, 36)
 predict.Position = UDim2.new(0.5, -90, 0, 60)
-predict.BackgroundColor3 = Color3.fromRGB(80, 80, 120)
+predict.BackgroundColor3 = Color3.fromRGB(60, 80, 120)
 predict.TextColor3 = Color3.new(1, 1, 1)
-predict.Font = Enum.Font.FredokaOne
+predict.Font = Enum.Font.Arcade
 predict.TextSize = 18
 predict.Text = "🔮 Predict Pets"
-Instance.new("UICorner", predict).CornerRadius = UDim.new(0, 10)
+Instance.new("UICorner", predict).CornerRadius = UDim.new(0, 8)
+predict.ZIndex = 1
 
 predict.MouseEnter:Connect(function()
-    predict.BackgroundColor3 = Color3.fromRGB(100, 100, 140)
+    predict.BackgroundColor3 = Color3.fromRGB(80, 100, 150)
 end)
 predict.MouseLeave:Connect(function()
-    predict.BackgroundColor3 = Color3.fromRGB(80, 80, 120)
+    predict.BackgroundColor3 = Color3.fromRGB(60, 80, 120)
+end)
+
+predict.MouseButton1Click:Connect(function()
+    for _, data in pairs(displayedEggs) do
+        local newPet = getPetForEgg(data.eggName)
+        if data.label then
+            data.label.Text = data.eggName .. " | " .. newPet
+        end
+        data.currentPet = newPet
+    end
 end)
 
 -- CREDITS
@@ -58,19 +81,32 @@ local credits = Instance.new("TextLabel", frame)
 credits.Size = UDim2.new(1, 0, 0, 20)
 credits.Position = UDim2.new(0, 0, 1, -20)
 credits.BackgroundTransparency = 1
-credits.Text = "created by: Wolyoung 👨‍💻"
-credits.Font = Enum.Font.Gotham
+credits.Text = "made by: Wolyoung 🌙"
+credits.Font = Enum.Font.Arcade
 credits.TextSize = 13
-credits.TextColor3 = Color3.fromRGB(150, 150, 150)
+credits.TextColor3 = Color3.fromRGB(180, 180, 255)
+credits.ZIndex = 1
 
 -- TOGGLE BUTTON
 local showBtn = Instance.new("TextButton", gui)
 showBtn.Size = UDim2.new(0, 100, 0, 36)
 showBtn.Position = UDim2.new(0, 20, 0.5, -18)
 showBtn.Text = "🐾 Show UI"
-showBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 90)
+showBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 70)
 showBtn.TextColor3 = Color3.new(1, 1, 1)
-showBtn.Font = Enum.Font.FredokaOne
+showBtn.Font = Enum.Font.Arcade
 showBtn.TextSize = 16
-Instance.new("UICorner", showBtn).CornerRadius = UDim.new(0, 10)
+Instance.new("UICorner", showBtn).CornerRadius = UDim.new(0, 8)
 showBtn.Visible = false
+showBtn.ZIndex = 1
+
+-- TOGGLE EVENTS
+close.MouseButton1Click:Connect(function()
+    frame.Visible = false
+    showBtn.Visible = true
+end)
+
+showBtn.MouseButton1Click:Connect(function()
+    frame.Visible = true
+    showBtn.Visible = false
+end)
