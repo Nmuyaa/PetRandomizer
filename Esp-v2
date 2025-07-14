@@ -150,7 +150,7 @@ predict.BackgroundColor3 = Color3.fromRGB(130, 160, 255)
 predict.TextColor3 = Color3.new(1, 1, 1)
 predict.Font = Enum.Font.Arcade
 predict.TextSize = 18
-predict.Text = "🔮 Predict Pets"
+predict.Text = "🐾 Predict Pets"
 predict.ZIndex = 3
 predict.Parent = frame
 Instance.new("UICorner", predict).CornerRadius = UDim.new(0, 8)
@@ -167,7 +167,7 @@ local credits = Instance.new("TextLabel")
 credits.Size = UDim2.new(1, 0, 0, 20)
 credits.Position = UDim2.new(0, 0, 1, -20)
 credits.BackgroundTransparency = 1
-credits.Text = "made by: anonymous person 👨🏻‍💻"
+credits.Text = "made by: Wolyoung 👨🏻‍💻"
 credits.Font = Enum.Font.Arcade
 credits.TextSize = 13
 credits.TextColor3 = Color3.fromRGB(220, 220, 220)
@@ -188,13 +188,13 @@ showBtn.Visible = false
 showBtn.ZIndex = 2
 showBtn.Parent = gui
 
--- FUNCTIONALITY EVENTS (unchanged)
+-- TOGGLE EVENTS
 close.MouseButton1Click:Connect(function()
-	frame.Visible = false
-	showBtn.Visible = true
+    frame.Visible = false
+    showBtn.Visible = true
 end)
 
 showBtn.MouseButton1Click:Connect(function()
-	frame.Visible = true
-	showBtn.Visible = false
+    frame.Visible = true
+    showBtn.Visible = false
 end)
