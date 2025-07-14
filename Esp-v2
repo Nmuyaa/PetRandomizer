@@ -164,7 +164,6 @@ local function getRandomPet(eggType)
 	return petList[#petList].name
 end
 
--- ESP Billboard
 local function showESP(part, text)
 	if not part then return end
 	if part:FindFirstChild("EggESP") then part.EggESP:Destroy() end
@@ -200,4 +199,29 @@ rerollBtn.MouseButton1Click:Connect(function()
 	local petName = getRandomPet(eggName or "Common Egg")
 	showESP(eggPart, petName)
 	print("[EggRandomizer] " .. tostring(eggName) .. " → " .. petName)
+end)
+
+-- ESP Toggle Button
+local espToggle = Instance.new("TextButton", frame)
+espToggle.Text = "[A] ESP: OFF"
+espToggle.Size = UDim2.new(1, -20, 0, 30)
+espToggle.Position = UDim2.new(0, 10, 0, 20)
+espToggle.Font = Enum.Font.Arcade
+espToggle.TextColor3 = Color3.new(1, 1, 1)
+espToggle.BackgroundColor3 = Color3.fromRGB(210, 60, 60)
+
+local espEnabled = false
+
+espToggle.MouseButton1Click:Connect(function()
+	espEnabled = not espEnabled
+	espToggle.Text = "[A] ESP: " .. (espEnabled and "ON" or "OFF")
+
+	-- Hide all ESP if toggled OFF
+	if not espEnabled then
+		for _, obj in ipairs(Workspace:GetDescendants()) do
+			if obj:IsA("BillboardGui") and obj.Name == "EggESP" then
+				obj:Destroy()
+			end
+		end
+	end
 end)
