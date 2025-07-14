@@ -230,22 +230,26 @@ espToggle.MouseButton1Click:Connect(function()
 	espEnabled = not espEnabled
 	espToggle.Text = "[A] ESP: " .. (espEnabled and "ON" or "OFF")
 
-	-- Clear all existing ESP
+	-- Remove existing ESP labels
 	for _, obj in ipairs(Workspace:GetDescendants()) do
 		if obj:IsA("BillboardGui") and obj.Name == "EggESP" then
 			obj:Destroy()
 		end
 	end
 
-	-- If ESP is ON, show default labels (like "???" or egg type)
+	-- Only apply ESP if toggle is ON
 	if espEnabled then
 		for _, egg in ipairs(Workspace:GetChildren()) do
 			if egg:IsA("BasePart") and egg.Name:find("Egg") then
-				local label = "???"
-				if eggs[egg.Name] then
-					label = egg.Name
-				end
-				showESP(egg, label)
+				local detectedType = nil
+for eggTypeName in pairs(eggs) do
+	if egg.Name:lower():find(eggTypeName:lower():gsub("%s+", "")) then
+		detectedType = eggTypeName
+		break
+	end
+end
+showESP(egg, detectedType or "???")
+				showESP(egg, displayName)
 			end
 		end
 	end
