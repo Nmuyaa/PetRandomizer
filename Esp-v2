@@ -201,56 +201,16 @@ rerollBtn.MouseButton1Click:Connect(function()
 	print("[EggRandomizer] " .. tostring(eggName) .. " → " .. petName)
 end)
 
--- ESP Toggle Button
-local espToggle = Instance.new("TextButton", frame)
-espToggle.Text = "[A] ESP: OFF"
-espToggle.Size = UDim2.new(1, -20, 0, 30)
-espToggle.Position = UDim2.new(0, 10, 0, 20)
-espToggle.Font = Enum.Font.Arcade
-espToggle.TextColor3 = Color3.new(1, 1, 1)
-espToggle.BackgroundColor3 = Color3.fromRGB(210, 60, 60)
-
-local espEnabled = false
-
-espToggle.MouseButton1Click:Connect(function()
-	espEnabled = not espEnabled
-	espToggle.Text = "[A] ESP: " .. (espEnabled and "ON" or "OFF")
-
-	-- Hide all ESP if toggled OFF
-	if not espEnabled then
-		for _, obj in ipairs(Workspace:GetDescendants()) do
-			if obj:IsA("BillboardGui") and obj.Name == "EggESP" then
-				obj:Destroy()
+for _, egg in ipairs(Workspace:GetChildren()) do
+	if egg:IsA("BasePart") and egg.Name:find("Egg") then
+		local matchedEggType = nil
+		for knownEgg in pairs(eggs) do
+			local shortName = knownEgg:gsub("%s+", ""):lower()
+			if egg.Name:lower():find(shortName) then
+				matchedEggType = knownEgg
+				break
 			end
 		end
-	end
-end)
-
-espToggle.MouseButton1Click:Connect(function()
-	espEnabled = not espEnabled
-	espToggle.Text = "[A] ESP: " .. (espEnabled and "ON" or "OFF")
-
-	-- Remove existing ESP labels
-	for _, obj in ipairs(Workspace:GetDescendants()) do
-		if obj:IsA("BillboardGui") and obj.Name == "EggESP" then
-			obj:Destroy()
-		end
-	end
-
-	-- Only apply ESP if toggle is ON
-	if espEnabled then
-		for _, egg in ipairs(Workspace:GetChildren()) do
-			if egg:IsA("BasePart") and egg.Name:find("Egg") then
-				local detectedType = nil
-for eggTypeName in pairs(eggs) do
-	if egg.Name:lower():find(eggTypeName:lower():gsub("%s+", "")) then
-		detectedType = eggTypeName
-		break
+		showESP(egg, matchedEggType or "???")
 	end
 end
-showESP(egg, detectedType or "???")
-				showESP(egg, displayName)
-			end
-		end
-	end
-end)
