@@ -110,7 +110,7 @@ local title = Instance.new("TextLabel", frame)
 title.Size = UDim2.new(1, -30, 0, 30)
 title.Position = UDim2.new(0, 10, 0, 8)
 title.BackgroundTransparency = 1
-title.Text = "🐾 Pet Predictor"
+title.Text = "🐾 Egg Randomizer"
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
 title.Font = Enum.Font.GothamBold
 title.TextSize = 20
@@ -135,7 +135,7 @@ predict.BackgroundColor3 = Color3.fromRGB(60, 60, 90)
 predict.TextColor3 = Color3.new(1, 1, 1)
 predict.Font = Enum.Font.GothamBold
 predict.TextSize = 18
-predict.Text = "✨ Predict Pets"
+predict.Text = "✨ Reroll egg"
 Instance.new("UICorner", predict).CornerRadius = UDim.new(0, 8)
 
 predict.MouseEnter:Connect(function()
