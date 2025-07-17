@@ -432,6 +432,49 @@ local cooldown = 5
 local autoReroll = false
 
 -- ESP COOLDOWN DISPLAY
+-- GUI SETUP
+local gui = Instance.new("ScreenGui", localPlayer:WaitForChild("PlayerGui"))
+gui.Name = "PetPredictorUI"
+gui.ResetOnSpawn = false
+
+-- MAIN FRAME
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.new(0, 260, 0, 200)
+frame.Position = UDim2.new(0.5, -130, 0.3, 0)
+frame.BackgroundColor3 = Color3.fromRGB(30, 20, 50)
+frame.BorderSizePixel = 0
+frame.Active = true
+frame.Draggable = true
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 4)
+
+-- TITLE
+local title = Instance.new("TextLabel", frame)
+title.Size = UDim2.new(1, -30, 0, 30)
+title.Position = UDim2.new(0, 10, 0, 6)
+title.BackgroundTransparency = 1
+title.Text = "🌿 Terraria Egg Roller"
+title.TextColor3 = Color3.fromRGB(170, 255, 170)
+title.Font = Enum.Font.Arcade
+title.TextSize = 20
+title.TextXAlignment = Enum.TextXAlignment.Left
+
+-- CLOSE BUTTON
+local close = Instance.new("TextButton", frame)
+close.Size = UDim2.new(0, 24, 0, 24)
+close.Position = UDim2.new(1, -30, 0, 10)
+close.Text = "X"
+close.TextColor3 = Color3.new(1, 1, 1)
+close.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
+close.Font = Enum.Font.Arcade
+close.TextSize = 16
+Instance.new("UICorner", close).CornerRadius = UDim.new(0, 4)
+
+-- VARIABLES
+local canClick = true
+local cooldown = 5
+local autoReroll = false
+
+-- ESP COOLDOWN DISPLAY
 local function updateESPCountdown()
     for _, data in pairs(displayedEggs) do
         if data and data.label and data.currentPet then
@@ -452,39 +495,29 @@ predict.Text = "✨ Reroll Egg"
 Instance.new("UICorner", predict).CornerRadius = UDim.new(0, 4)
 
 predict.MouseButton1Click:Connect(function()
-	if not canClick then return end
-	canClick = false
+    if not canClick then return end
+    canClick = false
 
-	for _, data in pairs(displayedEggs) do  
-		local newPet = getPetForEgg(data.eggName)  
-		if data.label then  
-			data.label.Text = string.format("%s | %s", data.eggName, newPet)  
-		end  
-		data.currentPet = newPet  
-	end  
+    for _, data in pairs(displayedEggs) do
+        local newPet = getPetForEgg(data.eggName)
+        if data.label then
+            data.label.Text = string.format("%s | %s (%ds)", data.eggName, newPet, cooldown)
+        end
+        data.currentPet = newPet
+    end
 
-	-- countdown with decimals and hide text at end
-	task.spawn(function()
-		local start = tick()
-		while tick() - start < cooldown do
-			local remaining = cooldown - (tick() - start)
-			for _, data in pairs(displayedEggs) do
-				if data and data.label then
-					data.label.Text = string.format("%s | %s (%.2fs)", data.eggName, data.currentPet, remaining)
-				end
-			end
-			task.wait(0.1)
-		end
-
-		-- Hide cooldown time
-		for _, data in pairs(displayedEggs) do
-			if data and data.label then
-				data.label.Text = string.format("%s | %s", data.eggName, data.currentPet)
-			end
-		end
-
-		canClick = true
-	end)
+    -- countdown
+    task.spawn(function()
+        for i = cooldown, 1, -1 do
+            task.wait(1)
+            for _, data in pairs(displayedEggs) do
+                if data and data.label then
+                    data.label.Text = string.format("%s | %s (%ds)", data.eggName, data.currentPet, i - 1)
+                end
+            end
+        end
+        canClick = true
+    end)
 end)
 
 -- AUTO REROLL TOGGLE
