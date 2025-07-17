@@ -97,22 +97,22 @@ gui.ResetOnSpawn = false
 
 -- MAIN FRAME
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0, 240, 0, 150)
-frame.Position = UDim2.new(0.5, -120, 0.3, 0)
-frame.BackgroundColor3 = Color3.fromRGB(35, 35, 50)
+frame.Size = UDim2.new(0, 260, 0, 170)
+frame.Position = UDim2.new(0.5, -130, 0.3, 0)
+frame.BackgroundColor3 = Color3.fromRGB(30, 20, 50) -- Terraria-style color
 frame.BorderSizePixel = 0
 frame.Active = true
 frame.Draggable = true
-Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 10)
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 4)
 
--- TITLE LABEL
+-- TITLE
 local title = Instance.new("TextLabel", frame)
 title.Size = UDim2.new(1, -30, 0, 30)
-title.Position = UDim2.new(0, 10, 0, 8)
+title.Position = UDim2.new(0, 10, 0, 6)
 title.BackgroundTransparency = 1
-title.Text = "🐾 Egg Randomizer"
-title.TextColor3 = Color3.fromRGB(255, 255, 255)
-title.Font = Enum.Font.GothamBold
+title.Text = "🌿 Terraria Egg Roller"
+title.TextColor3 = Color3.fromRGB(170, 255, 170)
+title.Font = Enum.Font.Arcade
 title.TextSize = 20
 title.TextXAlignment = Enum.TextXAlignment.Left
 
@@ -123,35 +123,71 @@ close.Position = UDim2.new(1, -30, 0, 10)
 close.Text = "X"
 close.TextColor3 = Color3.new(1, 1, 1)
 close.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
-close.Font = Enum.Font.GothamBold
+close.Font = Enum.Font.Arcade
 close.TextSize = 16
-Instance.new("UICorner", close).CornerRadius = UDim.new(0, 6)
+Instance.new("UICorner", close).CornerRadius = UDim.new(0, 4)
 
--- PREDICT BUTTON
+-- REROLL BUTTON
 local predict = Instance.new("TextButton", frame)
-predict.Size = UDim2.new(0, 180, 0, 36)
-predict.Position = UDim2.new(0.5, -90, 0, 60)
-predict.BackgroundColor3 = Color3.fromRGB(60, 60, 90)
+predict.Size = UDim2.new(0, 120, 0, 36)
+predict.Position = UDim2.new(0, 20, 0, 60)
+predict.BackgroundColor3 = Color3.fromRGB(60, 90, 60)
 predict.TextColor3 = Color3.new(1, 1, 1)
-predict.Font = Enum.Font.GothamBold
-predict.TextSize = 18
-predict.Text = "✨ Reroll egg"
-Instance.new("UICorner", predict).CornerRadius = UDim.new(0, 8)
+predict.Font = Enum.Font.Arcade
+predict.TextSize = 16
+predict.Text = "✨ Reroll Egg"
+Instance.new("UICorner", predict).CornerRadius = UDim.new(0, 4)
 
-predict.MouseEnter:Connect(function()
-    predict.BackgroundColor3 = Color3.fromRGB(80, 80, 110)
-end)
-predict.MouseLeave:Connect(function()
-    predict.BackgroundColor3 = Color3.fromRGB(60, 60, 90)
-end)
-
+local canClick = true
 predict.MouseButton1Click:Connect(function()
+    if not canClick then return end
+    canClick = false
+
     for _, data in pairs(displayedEggs) do
         local newPet = getPetForEgg(data.eggName)
         if data.label then
             data.label.Text = data.eggName .. " | " .. newPet
         end
         data.currentPet = newPet
+    end
+
+    predict.Text = "Cooldown..."
+    task.delay(5, function()
+        canClick = true
+        predict.Text = "✨ Reroll Egg"
+    end)
+end)
+
+-- AUTO REROLL TOGGLE
+local autoReroll = false
+local autoBtn = Instance.new("TextButton", frame)
+autoBtn.Size = UDim2.new(0, 100, 0, 36)
+autoBtn.Position = UDim2.new(0, 140, 0, 60)
+autoBtn.BackgroundColor3 = Color3.fromRGB(90, 60, 90)
+autoBtn.TextColor3 = Color3.new(1, 1, 1)
+autoBtn.Font = Enum.Font.Arcade
+autoBtn.TextSize = 14
+autoBtn.Text = "Auto Reroll: OFF"
+Instance.new("UICorner", autoBtn).CornerRadius = UDim.new(0, 4)
+
+autoBtn.MouseButton1Click:Connect(function()
+    autoReroll = not autoReroll
+    autoBtn.Text = "Auto Reroll: " .. (autoReroll and "ON" or "OFF")
+end)
+
+-- AUTO REROLL LOOP
+task.spawn(function()
+    while true do
+        task.wait(5)
+        if autoReroll then
+            for _, data in pairs(displayedEggs) do
+                local newPet = getPetForEgg(data.eggName)
+                if data.label then
+                    data.label.Text = data.eggName .. " | " .. newPet
+                end
+                data.currentPet = newPet
+            end
+        end
     end
 end)
 
@@ -161,9 +197,9 @@ credits.Size = UDim2.new(1, 0, 0, 20)
 credits.Position = UDim2.new(0, 0, 1, -20)
 credits.BackgroundTransparency = 1
 credits.Text = "made by: Wolyoung"
-credits.Font = Enum.Font.Gotham
+credits.Font = Enum.Font.Arcade
 credits.TextSize = 13
-credits.TextColor3 = Color3.fromRGB(170, 170, 170)
+credits.TextColor3 = Color3.fromRGB(200, 200, 200)
 
 -- TOGGLE BUTTON
 local showBtn = Instance.new("TextButton", gui)
@@ -172,9 +208,9 @@ showBtn.Position = UDim2.new(0, 20, 0.5, -18)
 showBtn.Text = "Show UI"
 showBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 70)
 showBtn.TextColor3 = Color3.new(1, 1, 1)
-showBtn.Font = Enum.Font.GothamBold
+showBtn.Font = Enum.Font.Arcade
 showBtn.TextSize = 16
-Instance.new("UICorner", showBtn).CornerRadius = UDim.new(0, 8)
+Instance.new("UICorner", showBtn).CornerRadius = UDim.new(0, 4)
 showBtn.Visible = false
 
 -- TOGGLE EVENTS
