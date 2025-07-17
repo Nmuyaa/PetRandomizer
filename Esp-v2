@@ -169,49 +169,39 @@ Instance.new("UICorner", predict).CornerRadius = UDim.new(0, 4)
     if not canClick then return end
     canClick = false
 
+    -- Reroll pets
     for _, data in pairs(displayedEggs) do
         local newPet = getPetForEgg(data.eggName)
+        data.currentPet = newPet
         if data.label then
             data.label.Text = string.format("%s | %s", data.eggName, newPet)
         end
-        data.currentPet = newPet
     end
 
-    -- Start cooldown countdown
+    -- Cooldown countdown with decimals
     task.spawn(function()
         local remaining = cooldown
         while remaining > 0 do
             predict.Text = string.format("Cooldown (%.2fs)", remaining)
             for _, data in pairs(displayedEggs) do
-                if data and data.label then
+                if data.label then
                     data.label.Text = string.format("%s | %s (%.2fs)", data.eggName, data.currentPet, remaining)
                 end
             end
             task.wait(0.1)
-            remaining = math.max(0, remaining - 0.1)
+            remaining -= 0.1
         end
 
-        -- Reset GUI and labels after cooldown
-        predict.Text = "✨ Reroll Egg"
+        -- Reset ESP text and button text after cooldown
         for _, data in pairs(displayedEggs) do
-            if data and data.label then
+            if data.label then
                 data.label.Text = string.format("%s | %s", data.eggName, data.currentPet)
             end
         end
-        canClick = true
-    end)
-end)           remaining -= 0.1
-        end
-
-        for _, data in pairs(displayedEggs) do
-            if data and data.label then
-                data.label.Text = string.format("%s | %s", data.eggName, data.currentPet)
-            end
-        end
-
         predict.Text = "✨ Reroll Egg"
         canClick = true
     end)
+end)
 
 -- AUTO REROLL TOGGLE
 task.spawn(function()
