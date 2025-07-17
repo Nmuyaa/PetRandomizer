@@ -165,46 +165,23 @@ predict.MouseButton1Click:Connect(function()
     end
 
     -- countdown
-
+    task.spawn(function()
+        for i = cooldown, 1, -1 do
+            task.wait(1)
+            for _, data in pairs(displayedEggs) do
+                if data and data.label then
+                    data.label.Text = string.format("%s | %s (%ds)", data.eggName, data.currentPet, i - 1)
+                end
+            end
+        end
+        canClick = true
+    end)
+end)
 
 -- AUTO REROLL TOGGLE
 local autoBtn = Instance.new("TextButton", frame)
 autoBtn.Size = UDim2.new(0, 220, 0, 30)
-autoBtn.Position = UDim2.new(0predict.MouseButton1Click:Connect(function()
-    if not canClick then return end
-    canClick = false
-
-    for _, data in pairs(displayedEggs) do
-        local newPet = getPetForEgg(data.eggName)
-        if data.label then
-            data.label.Text = string.format("%s | %s (%.2fs)", data.eggName, newPet, cooldown)
-        end
-        data.currentPet = newPet
-    end
-
-    -- Cooldown countdown with decimal display
-    task.spawn(function()
-        local remaining = cooldown
-        while remaining > 0 do
-            task.wait(0.05)
-            remaining -= 0.05
-            for _, data in pairs(displayedEggs) do
-                if data and data.label and data.currentPet then
-                    data.label.Text = string.format("%s | %s (%.2fs)", data.eggName, data.currentPet, math.max(remaining, 0))
-                end
-            end
-        end
-
-        -- When cooldown ends, remove timer display
-        for _, data in pairs(displayedEggs) do
-            if data and data.label and data.currentPet then
-                data.label.Text = string.format("%s | %s", data.eggName, data.currentPet)
-            end
-        end
-
-        canClick = true
-    end)
-end).5, -110, 0, 95)
+autoBtn.Position = UDim2.new(0.5, -110, 0, 95)
 autoBtn.BackgroundColor3 = Color3.fromRGB(90, 60, 90)
 autoBtn.TextColor3 = Color3.new(1, 1, 1)
 autoBtn.Font = Enum.Font.Arcade
