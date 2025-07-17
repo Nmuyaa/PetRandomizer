@@ -152,17 +152,7 @@ predict.TextSize = 16
 predict.Text = "✨ Reroll Egg"
 Instance.new("UICorner", predict).CornerRadius = UDim.new(0, 4)
 
-predict.MouseButton1Click:Connect(function()
-    if not canClick then return end
-    canClick = false
 
-    for _, data in pairs(displayedEggs) do
-        local newPet = getPetForEgg(data.eggName)
-        if data.label then
-            data.label.Text = string.format("%s | %s (%ds)", data.eggName, newPet, cooldown)
-        end
-        data.currentPet = newPet
-    end
 
     -- countdown
     task.spawn(function()
@@ -175,7 +165,42 @@ predict.MouseButton1Click:Connect(function()
                 end
             end
             task.wait(0.1)
-            remaining -= 0.1
+ predict.MouseButton1Click:Connect(function()
+    if not canClick then return end
+    canClick = false
+
+    for _, data in pairs(displayedEggs) do
+        local newPet = getPetForEgg(data.eggName)
+        if data.label then
+            data.label.Text = string.format("%s | %s", data.eggName, newPet)
+        end
+        data.currentPet = newPet
+    end
+
+    -- Start cooldown countdown
+    task.spawn(function()
+        local remaining = cooldown
+        while remaining > 0 do
+            predict.Text = string.format("Cooldown (%.2fs)", remaining)
+            for _, data in pairs(displayedEggs) do
+                if data and data.label then
+                    data.label.Text = string.format("%s | %s (%.2fs)", data.eggName, data.currentPet, remaining)
+                end
+            end
+            task.wait(0.1)
+            remaining = math.max(0, remaining - 0.1)
+        end
+
+        -- Reset GUI and labels after cooldown
+        predict.Text = "✨ Reroll Egg"
+        for _, data in pairs(displayedEggs) do
+            if data and data.label then
+                data.label.Text = string.format("%s | %s", data.eggName, data.currentPet)
+            end
+        end
+        canClick = true
+    end)
+end)           remaining -= 0.1
         end
 
         for _, data in pairs(displayedEggs) do
@@ -189,19 +214,13 @@ predict.MouseButton1Click:Connect(function()
     end)
 
 -- AUTO REROLL TOGGLE
-local autoBtn = Instance.new("TextButton", frame)
-autoBtn.Size = UDim2.new(0, 220, 0, 30)
-autoBtn.Position = UDim2.new(0.5, -110, 0, 95)
-autoBtn.BackgroundColor3 = Color3.fromRGB(90, 60, 90)
-autoBtn.TextColor3 = Color3.new(1, 1, 1)
-autoBtn.Font = Enum.Font.Arcade
-autoBtn.TextSize = 14
-autoBtn.Text = "Auto Reroll: OFF"
-Instance.new("UICorner", autoBtn).CornerRadius = UDim.new(0, 4)
-
-autoBtn.MouseButton1Click:Connect(function()
-    autoReroll = not autoReroll
-    autoBtn.Text = "Auto Reroll: " .. (autoReroll and "ON" or "OFF")
+task.spawn(function()
+    while true do
+        task.wait(cooldown)
+        if autoReroll and canClick then
+            predict:MouseButton1Click:Fire()
+        end
+    end
 end)
 
 -- AUTO REROLL LOOP
