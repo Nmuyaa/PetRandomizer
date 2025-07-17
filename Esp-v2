@@ -18,13 +18,11 @@ local eggChances = {
     ["Rare Summer Egg"] = {["Flamingo"] = 30, ["Toucan"] = 25, ["Sea Turtle"] = 20, ["Orangutan"] = 15, ["Seal"] = 10},
     ["Paradise Egg"] = {["Ostrich"] = 43, ["Peacock"] = 33, ["Capybara"] = 24, ["Scarlet Macaw"] = 3, ["Mimic Octopus"] = 1},
     ["Premium Night Egg"] = {["Hedgehog"] = 50, ["Mole"] = 26, ["Frog"] = 14, ["Echo Frog"] = 10},
-    
-
 }
 
 local displayedEggs = {}
 
--- FUNCTION: Get a valid pet (not 0%)
+-- FUNCTION: Get a valid pet
 local function getPetForEgg(eggName)
     local pets = eggChances[eggName]
     if not pets then return "?" end
@@ -35,7 +33,7 @@ local function getPetForEgg(eggName)
     return #valid > 0 and valid[math.random(1, #valid)] or "?"
 end
 
--- FUNCTION: Create ESP GUI
+-- FUNCTION: Create ESP
 local function createEspGui(object, labelText)
     local billboard = Instance.new("BillboardGui")
     billboard.Name = "PetESP"
@@ -52,7 +50,7 @@ local function createEspGui(object, labelText)
     label.TextScaled = true
     label.Font = Enum.Font.GothamBold
     label.Text = labelText
-    billboard.Parent = game:GetService("CoreGui")
+    billboard.Parent = localPlayer:WaitForChild("PlayerGui") -- SAFE
     return billboard
 end
 
@@ -85,7 +83,7 @@ local function removeESP(egg)
     end
 end
 
--- CONNECT ESP TO EGGS
+-- CONNECT ESP
 for _, egg in collectionService:GetTagged("PetEggServer") do addESP(egg) end
 collectionService:GetInstanceAddedSignal("PetEggServer"):Connect(addESP)
 collectionService:GetInstanceRemovedSignal("PetEggServer"):Connect(removeESP)
@@ -95,7 +93,6 @@ local gui = Instance.new("ScreenGui", localPlayer:WaitForChild("PlayerGui"))
 gui.Name = "PetPredictorUI"
 gui.ResetOnSpawn = false
 
--- MAIN FRAME
 local frame = Instance.new("Frame", gui)
 frame.Size = UDim2.new(0, 260, 0, 200)
 frame.Position = UDim2.new(0.5, -130, 0.3, 0)
@@ -105,7 +102,6 @@ frame.Active = true
 frame.Draggable = true
 Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 4)
 
--- TITLE
 local title = Instance.new("TextLabel", frame)
 title.Size = UDim2.new(1, -30, 0, 30)
 title.Position = UDim2.new(0, 10, 0, 6)
@@ -116,7 +112,6 @@ title.Font = Enum.Font.Arcade
 title.TextSize = 20
 title.TextXAlignment = Enum.TextXAlignment.Left
 
--- CLOSE BUTTON
 local close = Instance.new("TextButton", frame)
 close.Size = UDim2.new(0, 24, 0, 24)
 close.Position = UDim2.new(1, -30, 0, 10)
@@ -132,16 +127,7 @@ local canClick = true
 local cooldown = 5
 local autoReroll = false
 
--- ESP COOLDOWN DISPLAY
-local function updateESPCountdown()
-    for _, data in pairs(displayedEggs) do
-        if data and data.label and data.currentPet then
-            data.label.Text = string.format("%s | %s (%ds)", data.eggName, data.currentPet, cooldown)
-        end
-    end
-end
-
--- REROLL BUTTON
+-- BUTTON: Predict
 local predict = Instance.new("TextButton", frame)
 predict.Size = UDim2.new(0, 220, 0, 36)
 predict.Position = UDim2.new(0.5, -110, 0, 50)
@@ -152,24 +138,10 @@ predict.TextSize = 16
 predict.Text = "✨ Reroll Egg"
 Instance.new("UICorner", predict).CornerRadius = UDim.new(0, 4)
 
-
-
-    -- countdown
-    task.spawn(function()
-        local remaining = cooldown
-        while remaining > 0 do
-            predict.Text = string.format("Cooldown (%.2fs)", remaining)
-            for _, data in pairs(displayedEggs) do
-                if data and data.label then
-                    data.label.Text = string.format("%s | %s (%.2fs)", data.eggName, data.currentPet, remaining)
-                end
-            end
-            task.wait(0.1)
- predict.MouseButton1Click:Connect(function()
+predict.MouseButton1Click:Connect(function()
     if not canClick then return end
     canClick = false
 
-    -- Reroll pets
     for _, data in pairs(displayedEggs) do
         local newPet = getPetForEgg(data.eggName)
         data.currentPet = newPet
@@ -178,7 +150,6 @@ Instance.new("UICorner", predict).CornerRadius = UDim.new(0, 4)
         end
     end
 
-    -- Cooldown countdown with decimals
     task.spawn(function()
         local remaining = cooldown
         while remaining > 0 do
@@ -192,33 +163,38 @@ Instance.new("UICorner", predict).CornerRadius = UDim.new(0, 4)
             remaining -= 0.1
         end
 
-        -- Reset ESP text and button text after cooldown
+        predict.Text = "✨ Reroll Egg"
         for _, data in pairs(displayedEggs) do
             if data.label then
                 data.label.Text = string.format("%s | %s", data.eggName, data.currentPet)
             end
         end
-        predict.Text = "✨ Reroll Egg"
         canClick = true
     end)
 end)
 
--- AUTO REROLL TOGGLE
-task.spawn(function()
-    while true do
-        task.wait(cooldown)
-        if autoReroll and canClick then
-            predict:MouseButton1Click:Fire()
-        end
-    end
+-- AUTO BUTTON
+local autoBtn = Instance.new("TextButton", frame)
+autoBtn.Size = UDim2.new(0, 220, 0, 30)
+autoBtn.Position = UDim2.new(0.5, -110, 0, 95)
+autoBtn.BackgroundColor3 = Color3.fromRGB(90, 60, 90)
+autoBtn.TextColor3 = Color3.new(1, 1, 1)
+autoBtn.Font = Enum.Font.Arcade
+autoBtn.TextSize = 14
+autoBtn.Text = "Auto Reroll: OFF"
+Instance.new("UICorner", autoBtn).CornerRadius = UDim.new(0, 4)
+
+autoBtn.MouseButton1Click:Connect(function()
+    autoReroll = not autoReroll
+    autoBtn.Text = "Auto Reroll: " .. (autoReroll and "ON" or "OFF")
 end)
 
 -- AUTO REROLL LOOP
 task.spawn(function()
     while true do
-        task.wait(cooldown)
+        task.wait(0.1)
         if autoReroll and canClick then
-            predict:Activate() -- mimic manual click
+            predict:MouseButton1Click:Fire()
         end
     end
 end)
@@ -233,7 +209,7 @@ credits.Font = Enum.Font.Arcade
 credits.TextSize = 13
 credits.TextColor3 = Color3.fromRGB(200, 200, 200)
 
--- TOGGLE BUTTON
+-- TOGGLE UI
 local showBtn = Instance.new("TextButton", gui)
 showBtn.Size = UDim2.new(0, 100, 0, 36)
 showBtn.Position = UDim2.new(0, 20, 0.5, -18)
