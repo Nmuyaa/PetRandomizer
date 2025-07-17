@@ -166,17 +166,27 @@ predict.MouseButton1Click:Connect(function()
 
     -- countdown
     task.spawn(function()
-        for i = cooldown, 1, -1 do
-            task.wait(1)
+        local remaining = cooldown
+        while remaining > 0 do
+            predict.Text = string.format("Cooldown (%.2fs)", remaining)
             for _, data in pairs(displayedEggs) do
                 if data and data.label then
-                    data.label.Text = string.format("%s | %s (%ds)", data.eggName, data.currentPet, i - 1)
+                    data.label.Text = string.format("%s | %s (%.2fs)", data.eggName, data.currentPet, remaining)
                 end
             end
+            task.wait(0.1)
+            remaining -= 0.1
         end
+
+        for _, data in pairs(displayedEggs) do
+            if data and data.label then
+                data.label.Text = string.format("%s | %s", data.eggName, data.currentPet)
+            end
+        end
+
+        predict.Text = "✨ Reroll Egg"
         canClick = true
     end)
-end)
 
 -- AUTO REROLL TOGGLE
 local autoBtn = Instance.new("TextButton", frame)
