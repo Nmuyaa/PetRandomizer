@@ -18,7 +18,8 @@ local eggChances = {
     ["Rare Summer Egg"] = {["Flamingo"] = 30, ["Toucan"] = 25, ["Sea Turtle"] = 20, ["Orangutan"] = 15, ["Seal"] = 10},
     ["Paradise Egg"] = {["Ostrich"] = 43, ["Peacock"] = 33, ["Capybara"] = 24, ["Scarlet Macaw"] = 3, ["Mimic Octopus"] = 1},
     ["Premium Night Egg"] = {["Hedgehog"] = 50, ["Mole"] = 26, ["Frog"] = 14, ["Echo Frog"] = 10},
-    
+    ["Dinosaur Egg"] = {["Raptor"] = 35, ["Triceratops"] = 32.5, ["Stegosaurus"] = 28, ["Pterodactyl"] = 3, ["Brontosaurus"] = 1, ["T-Rex"] = 0.5},
+
 }
 
 local displayedEggs = {}
@@ -168,7 +169,7 @@ credits.TextColor3 = Color3.fromRGB(170, 170, 170)
 local showBtn = Instance.new("TextButton", gui)
 showBtn.Size = UDim2.new(0, 100, 0, 36)
 showBtn.Position = UDim2.new(0, 20, 0.5, -18)
-showBtn.Text = "ðŸ¾ Show UI"
+showBtn.Text = "Show UI"
 showBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 70)
 showBtn.TextColor3 = Color3.new(1, 1, 1)
 showBtn.Font = Enum.Font.GothamBold
