@@ -18,6 +18,8 @@ local eggChances = {
     ["Rare Summer Egg"] = {["Flamingo"] = 30, ["Toucan"] = 25, ["Sea Turtle"] = 20, ["Orangutan"] = 15, ["Seal"] = 10},
     ["Paradise Egg"] = {["Ostrich"] = 43, ["Peacock"] = 33, ["Capybara"] = 24, ["Scarlet Macaw"] = 3, ["Mimic Octopus"] = 1},
     ["Premium Night Egg"] = {["Hedgehog"] = 50, ["Mole"] = 26, ["Frog"] = 14, ["Echo Frog"] = 10}
+    ["Dinosaur Egg"] = {["Triceratops"] = 32.5, ["Stegosaurus"] = 28, ["T-Rex"] = 20, ["Pterodactyl"] = 3, ["Brontosaurus"] = 1
+},
 }
 
 local displayedEggs = {}
