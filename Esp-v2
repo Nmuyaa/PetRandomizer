@@ -113,6 +113,29 @@ title.BackgroundTransparency = 1
 title.Text = "🌿 Terraria Egg Roller"
 title.TextColor3 = Color3.fromRGB(170, 255, 170)
 title.Font = Enum.Font.Arcade
+-- GUI SETUP
+local gui = Instance.new("ScreenGui", localPlayer:WaitForChild("PlayerGui"))
+gui.Name = "PetPredictorUI"
+gui.ResetOnSpawn = false
+
+-- MAIN FRAME
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.new(0, 260, 0, 190)
+frame.Position = UDim2.new(0.5, -130, 0.3, 0)
+frame.BackgroundColor3 = Color3.fromRGB(30, 20, 50)
+frame.BorderSizePixel = 0
+frame.Active = true
+frame.Draggable = true
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 4)
+
+-- TITLE LABEL
+local title = Instance.new("TextLabel", frame)
+title.Size = UDim2.new(1, -30, 0, 30)
+title.Position = UDim2.new(0, 10, 0, 6)
+title.BackgroundTransparency = 1
+title.Text = "🌿 Terraria Egg Roller"
+title.TextColor3 = Color3.fromRGB(170, 255, 170)
+title.Font = Enum.Font.Arcade
 title.TextSize = 20
 title.TextXAlignment = Enum.TextXAlignment.Left
 
@@ -127,10 +150,15 @@ close.Font = Enum.Font.Arcade
 close.TextSize = 16
 Instance.new("UICorner", close).CornerRadius = UDim.new(0, 4)
 
+-- VARIABLES
+local canClick = true
+local cooldownRemaining = 0
+local autoReroll = false
+
 -- REROLL BUTTON
 local predict = Instance.new("TextButton", frame)
-predict.Size = UDim2.new(0, 120, 0, 36)
-predict.Position = UDim2.new(0, 20, 0, 60)
+predict.Size = UDim2.new(0, 220, 0, 36)
+predict.Position = UDim2.new(0.5, -110, 0, 50)
 predict.BackgroundColor3 = Color3.fromRGB(60, 90, 60)
 predict.TextColor3 = Color3.new(1, 1, 1)
 predict.Font = Enum.Font.Arcade
@@ -138,31 +166,39 @@ predict.TextSize = 16
 predict.Text = "✨ Reroll Egg"
 Instance.new("UICorner", predict).CornerRadius = UDim.new(0, 4)
 
-local canClick = true
 predict.MouseButton1Click:Connect(function()
     if not canClick then return end
     canClick = false
+    cooldownRemaining = 5
 
     for _, data in pairs(displayedEggs) do
         local newPet = getPetForEgg(data.eggName)
         if data.label then
-            data.label.Text = data.eggName .. " | " .. newPet
+            data.label.Text = data.eggName .. " | " .. newPet .. " (5s)"
         end
         data.currentPet = newPet
     end
 
     predict.Text = "Cooldown..."
-    task.delay(5, function()
+    task.spawn(function()
+        for i = 5, 1, -1 do
+            cooldownRemaining = i
+            for _, data in pairs(displayedEggs) do
+                if data.label then
+                    data.label.Text = data.eggName .. " | " .. data.currentPet .. " (" .. i .. "s)"
+                end
+            end
+            task.wait(1)
+        end
         canClick = true
         predict.Text = "✨ Reroll Egg"
     end)
 end)
 
--- AUTO REROLL TOGGLE
-local autoReroll = false
+-- AUTO REROLL BUTTON (below)
 local autoBtn = Instance.new("TextButton", frame)
-autoBtn.Size = UDim2.new(0, 100, 0, 36)
-autoBtn.Position = UDim2.new(0, 140, 0, 60)
+autoBtn.Size = UDim2.new(0, 220, 0, 30)
+autoBtn.Position = UDim2.new(0.5, -110, 0, 92)
 autoBtn.BackgroundColor3 = Color3.fromRGB(90, 60, 90)
 autoBtn.TextColor3 = Color3.new(1, 1, 1)
 autoBtn.Font = Enum.Font.Arcade
@@ -175,18 +211,12 @@ autoBtn.MouseButton1Click:Connect(function()
     autoBtn.Text = "Auto Reroll: " .. (autoReroll and "ON" or "OFF")
 end)
 
--- AUTO REROLL LOOP
+-- AUTO REROLL LOGIC
 task.spawn(function()
     while true do
-        task.wait(5)
-        if autoReroll then
-            for _, data in pairs(displayedEggs) do
-                local newPet = getPetForEgg(data.eggName)
-                if data.label then
-                    data.label.Text = data.eggName .. " | " .. newPet
-                end
-                data.currentPet = newPet
-            end
+        task.wait(1)
+        if autoReroll and canClick then
+            predict:MouseButton1Click()
         end
     end
 end)
@@ -213,7 +243,6 @@ showBtn.TextSize = 16
 Instance.new("UICorner", showBtn).CornerRadius = UDim.new(0, 4)
 showBtn.Visible = false
 
--- TOGGLE EVENTS
 close.MouseButton1Click:Connect(function()
     frame.Visible = false
     showBtn.Visible = true
