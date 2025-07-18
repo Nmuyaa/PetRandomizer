@@ -59,24 +59,32 @@ label.TextSize = 13 -- Smaller size
 end
 
 -- FUNCTION: Add ESP
-local function addESP(egg)
-    if egg:GetAttribute("OWNER") ~= localPlayer.Name then return end
-    local eggName = egg:GetAttribute("EggName")
-    local objectId = egg:GetAttribute("OBJECT_UUID")
-    if not eggName or not objectId or displayedEggs[objectId] then return end
-    local pet = getPetForEgg(eggName)
-local labelText = eggName .. " | " .. pet
+local function addESP(egg, eggName, petName)
+    if not espEnabled then return end
 
-if espEnabled then
-    local espGui = createEspGui(egg, labelText)
-    if espGui then
-        displayedEggs[objectId] = {
+    local adornee = egg:FindFirstChildWhichIsA("BasePart") or egg.PrimaryPart
+    if adornee then
+        local gui = createEspGui(eggName, petName)
+        gui.Adornee = adornee
+        gui.Parent = egg
+
+        local selectionBox = Instance.new("SelectionBox")
+        selectionBox.Adornee = adornee
+        selectionBox.LineThickness = 0.05
+        selectionBox.SurfaceTransparency = 0.5
+        selectionBox.Color3 = Color3.fromRGB(255, 0, 0)
+        selectionBox.Parent = egg
+
+        displayedEggs[egg:GetDebugId()] = {
             egg = egg,
-            gui = espGui,
-            label = espGui:FindFirstChild("TextLabel"),
+            gui = gui,
+            label = gui:FindFirstChildOfClass("TextLabel"),
+            selectionBox = selectionBox,
             eggName = eggName,
-            currentPet = pet
+            currentPet = petName
         }
+    end
+end
 
         -- Add red transparent aura
         local adornee = egg:FindFirstChildWhichIsA("BasePart") or egg.PrimaryPart
