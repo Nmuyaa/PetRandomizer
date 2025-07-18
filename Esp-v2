@@ -101,23 +101,25 @@ local frame = Instance.new("Frame", gui)
 frame.Size = UDim2.new(0, 260, 0, 200)
 frame.Position = UDim2.new(0.5, -130, 0.3, 0)
 frame.BackgroundTransparency = 1 -- Make background invisible
+frame.BackgroundTransparency = 1 -- We'll use an ImageLabel for the background
 
--- Minecraft Dirt Texture as background
-local bgImage = Instance.new("ImageLabel", frame)
+-- Minecraft Dirt Background Texture
+local bgImage = Instance.new("ImageLabel")
+bgImage.Name = "DirtBackground"
+bgImage.Parent = frame
 bgImage.Size = UDim2.new(1, 0, 1, 0)
 bgImage.Position = UDim2.new(0, 0, 0, 0)
-bgImage.Image = "rbxassetid://15261680455" -- Minecraft dirt texture
+bgImage.Image = "rbxassetid://15261680455" -- Dirt texture asset
 bgImage.BackgroundTransparency = 1
 bgImage.ImageTransparency = 0
 bgImage.ScaleType = Enum.ScaleType.Tile
-bgImage.TileSize = UDim2.new(0, 64, 0, 64) -- Tile to repeat pattern
+bgImage.TileSize = UDim2.new(0, 64, 0, 64)
 bgImage.ZIndex = 0
 
--- Push all other GUI elements in front of background
-frame.ZIndex = 1
+-- Now ensure every other GUI element is layered on top
 for _, child in ipairs(frame:GetChildren()) do
-    if child:IsA("GuiObject") then
-        child.ZIndex = 2
+    if child:IsA("GuiObject") and child ~= bgImage then
+        child.ZIndex = 1
     end
 end
 frame.BorderSizePixel = 0
