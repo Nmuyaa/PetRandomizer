@@ -110,7 +110,7 @@ local title = Instance.new("TextLabel", frame)
 title.Size = UDim2.new(1, -30, 0, 30)
 title.Position = UDim2.new(0, 10, 0, 6)
 title.BackgroundTransparency = 1
-title.Text = "🌿 Terraria Egg Roller"
+title.Text = "🥚 Egg Randomizer"
 title.TextColor3 = Color3.fromRGB(170, 255, 170)
 title.Font = Enum.Font.Arcade
 title.TextSize = 20
@@ -149,7 +149,7 @@ predict.BackgroundColor3 = Color3.fromRGB(60, 90, 60)
 predict.TextColor3 = Color3.new(1, 1, 1)
 predict.Font = Enum.Font.Arcade
 predict.TextSize = 16
-predict.Text = "✨ Reroll Egg"
+predict.Text = "🎲 Reroll Egg"
 Instance.new("UICorner", predict).CornerRadius = UDim.new(0, 4)
 
 
