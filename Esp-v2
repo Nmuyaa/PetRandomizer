@@ -96,36 +96,7 @@ local gui = Instance.new("ScreenGui", localPlayer:WaitForChild("PlayerGui"))
 gui.Name = "PetPredictorUI"
 gui.ResetOnSpawn = false
 
--- MAIN FRAME
-local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0, 260, 0, 200)
-frame.Position = UDim2.new(0.5, -130, 0.3, 0)
-frame.BackgroundTransparency = 1 -- Make background invisible
-frame.BackgroundTransparency = 1 -- We'll use an ImageLabel for the background
 
--- Minecraft Dirt Background Texture
-local bgImage = Instance.new("ImageLabel")
-bgImage.Name = "DirtBackground"
-bgImage.Parent = frame
-bgImage.Size = UDim2.new(1, 0, 1, 0)
-bgImage.Position = UDim2.new(0, 0, 0, 0)
-bgImage.Image = "rbxassetid://15261680455" -- Dirt texture asset
-bgImage.BackgroundTransparency = 1
-bgImage.ImageTransparency = 0
-bgImage.ScaleType = Enum.ScaleType.Tile
-bgImage.TileSize = UDim2.new(0, 64, 0, 64)
-bgImage.ZIndex = 0
-
--- Now ensure every other GUI element is layered on top
-for _, child in ipairs(frame:GetChildren()) do
-    if child:IsA("GuiObject") and child ~= bgImage then
-        child.ZIndex = 1
-    end
-end
-frame.BorderSizePixel = 0
-frame.Active = true
-frame.Draggable = true
-Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 4)
 
 -- TITLE
 local title = Instance.new("TextLabel", frame)
@@ -139,7 +110,40 @@ title.TextSize = 20
 title.TextXAlignment = Enum.TextXAlignment.Left
 
 -- CLOSE BUTTON
-local close = Instance.new("TextButton", frame)
+lo-- MAIN FRAME
+local frame = Instance.new("Frame")
+frame.Name = "MainFrame"
+frame.Size = UDim2.new(0, 260, 0, 200)
+frame.Position = UDim2.new(0.5, -130, 0.3, 0)
+frame.BackgroundTransparency = 1 -- Make the base frame transparent
+frame.BorderSizePixel = 0
+frame.Active = true
+frame.Draggable = true
+frame.Parent = gui
+
+-- Minecraft Dirt Background Texture (ImageLabel behind all elements)
+local dirtBG = Instance.new("ImageLabel")
+dirtBG.Name = "DirtTexture"
+dirtBG.Size = UDim2.new(1, 0, 1, 0)
+dirtBG.Position = UDim2.new(0, 0, 0, 0)
+dirtBG.BackgroundTransparency = 1
+dirtBG.Image = "rbxassetid://15261680455" -- Dirt texture
+dirtBG.ScaleType = Enum.ScaleType.Tile
+dirtBG.TileSize = UDim2.new(0, 64, 0, 64)
+dirtBG.ZIndex = 0
+dirtBG.Parent = frame
+
+-- Add UICorner to texture (if you want rounded corners)
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 4)
+corner.Parent = frame
+
+-- Make sure all future children are in front of the background
+frame.ChildAdded:Connect(function(child)
+	if child:IsA("GuiObject") and child.Name ~= "DirtTexture" then
+		child.ZIndex = 1
+	end
+end)cal close = Instance.new("TextButton", frame)
 close.Size = UDim2.new(0, 24, 0, 24)
 close.Position = UDim2.new(1, -30, 0, 10)
 close.Text = "X"
