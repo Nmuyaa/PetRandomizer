@@ -48,9 +48,10 @@ local function createEspGui(object, labelText)
     local label = Instance.new("TextLabel", billboard)
     label.Size = UDim2.new(1, 0, 1, 0)
     label.BackgroundTransparency = 1
-    label.TextColor3 = Color3.new(1, 1, 1)
-    label.TextScaled = true
-    label.Font = Enum.Font.GothamBold
+    label.TextColor3 = Color3.fromRGB(255, 255, 0) -- Yellow
+label.TextScaled = false
+label.Font = Enum.Font.Arcade -- Pixel font
+label.TextSize = 13 -- Smaller size
     label.Text = labelText
     billboard.Parent = game:GetService("CoreGui")
     return billboard
@@ -99,7 +100,26 @@ gui.ResetOnSpawn = false
 local frame = Instance.new("Frame", gui)
 frame.Size = UDim2.new(0, 260, 0, 200)
 frame.Position = UDim2.new(0.5, -130, 0.3, 0)
-frame.BackgroundColor3 = Color3.fromRGB(30, 20, 50)
+frame.BackgroundTransparency = 1 -- Make background invisible
+
+-- Minecraft Dirt Texture as background
+local bgImage = Instance.new("ImageLabel", frame)
+bgImage.Size = UDim2.new(1, 0, 1, 0)
+bgImage.Position = UDim2.new(0, 0, 0, 0)
+bgImage.Image = "rbxassetid://15261680455" -- Minecraft dirt texture
+bgImage.BackgroundTransparency = 1
+bgImage.ImageTransparency = 0
+bgImage.ScaleType = Enum.ScaleType.Tile
+bgImage.TileSize = UDim2.new(0, 64, 0, 64) -- Tile to repeat pattern
+bgImage.ZIndex = 0
+
+-- Push all other GUI elements in front of background
+frame.ZIndex = 1
+for _, child in ipairs(frame:GetChildren()) do
+    if child:IsA("GuiObject") then
+        child.ZIndex = 2
+    end
+end
 frame.BorderSizePixel = 0
 frame.Active = true
 frame.Draggable = true
