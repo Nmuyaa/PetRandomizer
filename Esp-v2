@@ -19,13 +19,14 @@ local eggChances = {
     ["Rare Summer Egg"] = {["Flamingo"] = 30, ["Toucan"] = 25, ["Sea Turtle"] = 20, ["Orangutan"] = 15, ["Seal"] = 10},
     ["Paradise Egg"] = {["Ostrich"] = 43, ["Peacock"] = 33, ["Capybara"] = 24, ["Scarlet Macaw"] = 3, ["Mimic Octopus"] = 1},
     ["Premium Night Egg"] = {["Hedgehog"] = 50, ["Mole"] = 26, ["Frog"] = 14, ["Echo Frog"] = 10},
-    
-
 }
 
 local displayedEggs = {}
+local cooldown = 5
+local canClick = true
+local autoReroll = false
 
--- FUNCTION: Get a valid pet (not 0%)
+-- Get a pet for egg
 local function getPetForEgg(eggName)
     local pets = eggChances[eggName]
     if not pets then return "?" end
@@ -36,92 +37,74 @@ local function getPetForEgg(eggName)
     return #valid > 0 and valid[math.random(1, #valid)] or "?"
 end
 
--- FUNCTION: Create ESP GUI
+-- ESP GUI
 local function createEspGui(object, labelText)
     local billboard = Instance.new("BillboardGui")
     billboard.Name = "PetESP"
     billboard.AlwaysOnTop = true
     billboard.Size = UDim2.new(0, 200, 0, 50)
     billboard.StudsOffset = Vector3.new(0, 2.5, 0)
-    local adornee = object:FindFirstChildWhichIsA("BasePart") or object.PrimaryPart
-    if not adornee then return nil end
-    billboard.Adornee = adornee
+    billboard.Adornee = object
     local label = Instance.new("TextLabel", billboard)
     label.Size = UDim2.new(1, 0, 1, 0)
     label.BackgroundTransparency = 1
-    label.TextColor3 = Color3.fromRGB(255, 255, 0) -- Yellow
-label.TextScaled = false
-label.Font = Enum.Font.Arcade -- Pixel font
-label.TextSize = 13 -- Smaller size
+    label.TextColor3 = Color3.fromRGB(255, 255, 0)
+    label.TextScaled = false
+    label.Font = Enum.Font.Arcade
+    label.TextSize = 13
     label.Text = labelText
     billboard.Parent = game:GetService("CoreGui")
     return billboard
 end
 
--- FUNCTION: Add ESP
+-- Add ESP
 local function addESP(egg, eggName, petName)
     if not espEnabled then return end
-
     local adornee = egg:FindFirstChildWhichIsA("BasePart") or egg.PrimaryPart
     if adornee then
-        local gui = createEspGui(eggName, petName)
-        gui.Adornee = adornee
-        gui.Parent = egg
+        local gui = createEspGui(adornee, eggName .. " | " .. petName)
+        local aura = Instance.new("SelectionBox")
+        aura.Name = "RedAura"
+        aura.Adornee = adornee
+        aura.LineThickness = 0.1
+        aura.SurfaceTransparency = 0.7
+        aura.Color3 = Color3.fromRGB(255, 0, 0)
+        aura.Parent = adornee
 
-        local selectionBox = Instance.new("SelectionBox")
-        selectionBox.Adornee = adornee
-        selectionBox.LineThickness = 0.05
-        selectionBox.SurfaceTransparency = 0.5
-        selectionBox.Color3 = Color3.fromRGB(255, 0, 0)
-        selectionBox.Parent = egg
-
-        displayedEggs[egg:GetDebugId()] = {
+        displayedEggs[egg] = {
             egg = egg,
             gui = gui,
-            label = gui:FindFirstChildOfClass("TextLabel"),
-            selectionBox = selectionBox,
+            label = gui:FindFirstChild("TextLabel"),
+            selectionBox = aura,
             eggName = eggName,
             currentPet = petName
         }
     end
 end
 
-        -- Add red transparent aura
-        local adornee = egg:FindFirstChildWhichIsA("BasePart") or egg.PrimaryPart
-        if adornee then
-            local aura = Instance.new("SelectionBox")
-            aura.Name = "RedAura"
-            aura.Adornee = adornee
-            aura.LineThickness = 0.1
-            aura.SurfaceTransparency = 0.7
-            aura.Color3 = Color3.fromRGB(255, 0, 0)
-            aura.Parent = adornee
-        end
-    end
-end
-
--- FUNCTION: Remove ESP
+-- Remove ESP
 local function removeESP(egg)
-    local objectId = egg:GetAttribute("OBJECT_UUID")
-    if objectId and displayedEggs[objectId] then
-        -- Remove ESP GUI
-        if displayedEggs[objectId].gui then
-            displayedEggs[objectId].gui:Destroy()
-        end
-
-        -- Remove red aura
-        local adornee = egg:FindFirstChildWhichIsA("BasePart") or egg.PrimaryPart
-        if adornee and adornee:FindFirstChild("RedAura") then
-            adornee.RedAura:Destroy()
-        end
-
-        displayedEggs[objectId] = nil
+    local data = displayedEggs[egg]
+    if data then
+        if data.gui then data.gui:Destroy() end
+        if data.selectionBox then data.selectionBox:Destroy() end
+        displayedEggs[egg] = nil
     end
 end
 
--- CONNECT ESP TO EGGS
-for _, egg in collectionService:GetTagged("PetEggServer") do addESP(egg) end
-collectionService:GetInstanceAddedSignal("PetEggServer"):Connect(addESP)
+-- CONNECT TO TAGGED EGGS
+for _, egg in collectionService:GetTagged("PetEggServer") do
+    local eggName = egg:GetAttribute("EggName") or "Unknown Egg"
+    local petName = getPetForEgg(eggName)
+    addESP(egg, eggName, petName)
+end
+
+collectionService:GetInstanceAddedSignal("PetEggServer"):Connect(function(egg)
+    local eggName = egg:GetAttribute("EggName") or "Unknown Egg"
+    local petName = getPetForEgg(eggName)
+    addESP(egg, eggName, petName)
+end)
+
 collectionService:GetInstanceRemovedSignal("PetEggServer"):Connect(removeESP)
 
 -- GUI SETUP
@@ -129,7 +112,6 @@ local gui = Instance.new("ScreenGui", localPlayer:WaitForChild("PlayerGui"))
 gui.Name = "PetPredictorUI"
 gui.ResetOnSpawn = false
 
--- MAIN FRAME
 local frame = Instance.new("Frame", gui)
 frame.Size = UDim2.new(0, 260, 0, 200)
 frame.Position = UDim2.new(0.5, -130, 0.3, 0)
@@ -139,7 +121,6 @@ frame.Active = true
 frame.Draggable = true
 Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 4)
 
--- TITLE
 local title = Instance.new("TextLabel", frame)
 title.Size = UDim2.new(1, -30, 0, 30)
 title.Position = UDim2.new(0, 10, 0, 6)
@@ -150,7 +131,6 @@ title.Font = Enum.Font.Arcade
 title.TextSize = 20
 title.TextXAlignment = Enum.TextXAlignment.Left
 
--- CLOSE BUTTON
 local close = Instance.new("TextButton", frame)
 close.Size = UDim2.new(0, 24, 0, 24)
 close.Position = UDim2.new(1, -30, 0, 10)
@@ -161,22 +141,7 @@ close.Font = Enum.Font.Arcade
 close.TextSize = 16
 Instance.new("UICorner", close).CornerRadius = UDim.new(0, 4)
 
--- VARIABLES
-local canClick = true
-local cooldown = 5
-local autoReroll = false
-local espEnabled = true
-
--- ESP COOLDOWN DISPLAY
-local function updateESPCountdown()
-    for _, data in pairs(displayedEggs) do
-        if data and data.label and data.currentPet then
-            data.label.Text = string.format("%s | %s (%ds)", data.eggName, data.currentPet, cooldown)
-        end
-    end
-end
-
--- REROLL BUTTON
+-- BUTTONS
 local predict = Instance.new("TextButton", frame)
 predict.Size = UDim2.new(0, 220, 0, 36)
 predict.Position = UDim2.new(0.5, -110, 0, 50)
@@ -187,72 +152,7 @@ predict.TextSize = 16
 predict.Text = "🎲 Reroll Egg"
 Instance.new("UICorner", predict).CornerRadius = UDim.new(0, 4)
 
--- ESP TOGGLE BUTTON
-local espBtn = Instance.new("TextButton", frame)
-espBtn.Size = UDim2.new(0, 220, 0, 30)
-espBtn.Position = UDim2.new(0.5, -110, 0, 90) -- This goes between reroll and auto reroll
-espBtn.BackgroundColor3 = Color3.fromRGB(90, 60, 60)
-espBtn.TextColor3 = Color3.new(1, 1, 1)
-espBtn.Font = Enum.Font.Arcade
-espBtn.TextSize = 14
-espBtn.Text = "ESP: ON"
-Instance.new("UICorner", espBtn).CornerRadius = UDim.new(0, 4)
-espBtn.MouseButton1Click:Connect(function()
-    espEnabled = not espEnabled
-    espBtn.Text = "ESP: " .. (espEnabled and "ON" or "OFF")
-
-    for _, data in pairs(displayedEggs) do
-        local egg = data.egg
-        local adornee = egg:FindFirstChildWhichIsA("BasePart") or egg.PrimaryPart
-
-        if espEnabled then
-            -- Create ESP GUI if not present
-            if not data.gui or not data.gui.Parent then
-                local newGui = createEspGui(egg, data.eggName .. " | " .. data.currentPet)
-                data.gui = newGui
-                data.label = newGui:FindFirstChild("TextLabel")
-            end
-
-            -- Add aura if missing
-            if adornee and not adornee:FindFirstChild("RedAura") then
-                local aura = Instance.new("SelectionBox")
-                aura.Name = "RedAura"
-                aura.Adornee = adornee
-                aura.LineThickness = 0.1
-                aura.SurfaceTransparency = 0.7
-                aura.Color3 = Color3.fromRGB(255, 0, 0)
-                aura.Parent = adornee
-            end
-        else
-            -- Remove GUI
-            if data.gui then
-                data.gui:Destroy()
-                data.gui = nil
-                data.label = nil
-            end
-
-            -- Remove aura
-            if adornee and adornee:FindFirstChild("RedAura") then
-                adornee.RedAura:Destroy()
-            end
-        end
-    end
-end)
-
--- AUTO REROLL TOGGLE
-local autoBtn = Instance.new("TextButton", frame)
-autoBtn.Size = UDim2.new(0, 220, 0, 30)
-autoBtn.Position = UDim2.new(0.5, -110, 0, 95)
-autoBtn.BackgroundColor3 = Color3.fromRGB(90, 60, 90)
-autoBtn.TextColor3 = Color3.new(1, 1, 1)
-autoBtn.Font = Enum.Font.Arcade
-autoBtn.TextSize = 14
-autoBtn.Text = "Auto Reroll: OFF"
-Instance.new("UICorner", autoBtn).CornerRadius = UDim.new(0, 4)
-
-autoBtn.MouseButton1Click:Connect(function()
-    autoReroll = not autoReroll
-    autoBtn.Text = "Auto Reroll: " ..predict.MouseButton1Click:Connect(function()
+predict.MouseButton1Click:Connect(function()
     if not canClick then return end
     canClick = false
 
@@ -264,7 +164,6 @@ autoBtn.MouseButton1Click:Connect(function()
         end
     end
 
-    -- countdown with decimal
     task.spawn(function()
         local startTime = tick()
         while tick() - startTime < cooldown do
@@ -277,7 +176,6 @@ autoBtn.MouseButton1Click:Connect(function()
             task.wait(0.1)
         end
 
-        -- After cooldown ends, remove timer but keep egg name and pet
         for _, data in pairs(displayedEggs) do
             if data and data.label then
                 data.label.Text = string.format("%s | %s", data.eggName, data.currentPet)
@@ -286,20 +184,75 @@ autoBtn.MouseButton1Click:Connect(function()
 
         canClick = true
     end)
-end) (autoReroll and "ON" or "OFF")
 end)
 
--- AUTO REROLL LOOP
-task.spawn(function()
-    while true do
-        task.wait(cooldown)
-        if autoReroll and canClick then
-            predict:Activate() -- mimic manual click
+local espBtn = Instance.new("TextButton", frame)
+espBtn.Size = UDim2.new(0, 220, 0, 30)
+espBtn.Position = UDim2.new(0.5, -110, 0, 90)
+espBtn.BackgroundColor3 = Color3.fromRGB(90, 60, 60)
+espBtn.TextColor3 = Color3.new(1, 1, 1)
+espBtn.Font = Enum.Font.Arcade
+espBtn.TextSize = 14
+espBtn.Text = "ESP: ON"
+Instance.new("UICorner", espBtn).CornerRadius = UDim.new(0, 4)
+
+espBtn.MouseButton1Click:Connect(function()
+    espEnabled = not espEnabled
+    espBtn.Text = "ESP: " .. (espEnabled and "ON" or "OFF")
+
+    for _, data in pairs(displayedEggs) do
+        local adornee = data.egg:FindFirstChildWhichIsA("BasePart") or data.egg.PrimaryPart
+
+        if espEnabled then
+            if not data.gui or not data.gui.Parent then
+                local newGui = createEspGui(adornee, data.eggName .. " | " .. data.currentPet)
+                data.gui = newGui
+                data.label = newGui:FindFirstChild("TextLabel")
+            end
+            if adornee and not adornee:FindFirstChild("RedAura") then
+                local aura = Instance.new("SelectionBox")
+                aura.Name = "RedAura"
+                aura.Adornee = adornee
+                aura.LineThickness = 0.1
+                aura.SurfaceTransparency = 0.7
+                aura.Color3 = Color3.fromRGB(255, 0, 0)
+                aura.Parent = adornee
+            end
+        else
+            if data.gui then data.gui:Destroy() end
+            if adornee and adornee:FindFirstChild("RedAura") then
+                adornee.RedAura:Destroy()
+            end
         end
     end
 end)
 
--- CREDITS
+local autoBtn = Instance.new("TextButton", frame)
+autoBtn.Size = UDim2.new(0, 220, 0, 30)
+autoBtn.Position = UDim2.new(0.5, -110, 0, 125)
+autoBtn.BackgroundColor3 = Color3.fromRGB(90, 60, 90)
+autoBtn.TextColor3 = Color3.new(1, 1, 1)
+autoBtn.Font = Enum.Font.Arcade
+autoBtn.TextSize = 14
+autoBtn.Text = "Auto Reroll: OFF"
+Instance.new("UICorner", autoBtn).CornerRadius = UDim.new(0, 4)
+
+autoBtn.MouseButton1Click:Connect(function()
+    autoReroll = not autoReroll
+    autoBtn.Text = "Auto Reroll: " .. (autoReroll and "ON" or "OFF")
+end)
+
+-- Auto reroll loop
+task.spawn(function()
+    while true do
+        task.wait(cooldown)
+        if autoReroll and canClick then
+            predict:Activate()
+        end
+    end
+end)
+
+-- Credits
 local credits = Instance.new("TextLabel", frame)
 credits.Size = UDim2.new(1, 0, 0, 20)
 credits.Position = UDim2.new(0, 0, 1, -20)
@@ -309,7 +262,7 @@ credits.Font = Enum.Font.Arcade
 credits.TextSize = 13
 credits.TextColor3 = Color3.fromRGB(200, 200, 200)
 
--- TOGGLE BUTTON
+-- UI toggle
 local showBtn = Instance.new("TextButton", gui)
 showBtn.Size = UDim2.new(0, 100, 0, 36)
 showBtn.Position = UDim2.new(0, 20, 0.5, -18)
