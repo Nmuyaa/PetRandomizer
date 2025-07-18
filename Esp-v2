@@ -152,41 +152,7 @@ predict.TextSize = 16
 predict.Text = "✨ Reroll Egg"
 Instance.new("UICorner", predict).CornerRadius = UDim.new(0, 4)
 
-predict.MouseButton1Click:Connect(function()
-    if not canClick then return end
-    canClick = false
 
-    for _, data in pairs(displayedEggs) do
-        local newPet = getPetForEgg(data.eggName)
-        if data.label then
-            data.label.Visible = true
-            data.label.Text = string.format("%s | %s (Cooldown...)", data.eggName, newPet)
-        end
-        data.currentPet = newPet
-    end
-
-    -- countdown
-    task.spawn(function()
-        for i = cooldown, 1, -1 do
-            task.wait(1)
-            for _, data in pairs(displayedEggs) do
-                if data and data.label then
-                    data.label.Text = string.format("%s | %s (%.2fs)", data.eggName, data.currentPet, i - 1)
-                end
-            end
-        end
-
-        -- hide timer after cooldown ends
-        for _, data in pairs(displayedEggs) do
-            if data and data.label then
-                data.label.Text = string.format("%s | %s", data.eggName, data.currentPet)
-                data.label.Visible = false
-            end
-        end
-
-        canClick = true
-    end)
-end)
 
 -- AUTO REROLL TOGGLE
 local autoBtn = Instance.new("TextButton", frame)
@@ -201,7 +167,41 @@ Instance.new("UICorner", autoBtn).CornerRadius = UDim.new(0, 4)
 
 autoBtn.MouseButton1Click:Connect(function()
     autoReroll = not autoReroll
-    autoBtn.Text = "Auto Reroll: " .. (autoReroll and "ON" or "OFF")
+    autoBtn.Text = "Auto Reroll: " ..predict.MouseButton1Click:Connect(function()
+    if not canClick then return end
+    canClick = false
+
+    for _, data in pairs(displayedEggs) do
+        local newPet = getPetForEgg(data.eggName)
+        data.currentPet = newPet
+        if data.label then
+            data.label.Text = string.format("%s | %s (Cooldown...)", data.eggName, newPet)
+        end
+    end
+
+    -- countdown with decimal
+    task.spawn(function()
+        local startTime = tick()
+        while tick() - startTime < cooldown do
+            local timeLeft = cooldown - (tick() - startTime)
+            for _, data in pairs(displayedEggs) do
+                if data and data.label then
+                    data.label.Text = string.format("%s | %s (%.2fs)", data.eggName, data.currentPet, timeLeft)
+                end
+            end
+            task.wait(0.1)
+        end
+
+        -- After cooldown ends, remove timer but keep egg name and pet
+        for _, data in pairs(displayedEggs) do
+            if data and data.label then
+                data.label.Text = string.format("%s | %s", data.eggName, data.currentPet)
+            end
+        end
+
+        canClick = true
+    end)
+end) (autoReroll and "ON" or "OFF")
 end)
 
 -- AUTO REROLL LOOP
