@@ -2,6 +2,7 @@
 local players = game:GetService("Players")
 local collectionService = game:GetService("CollectionService")
 local localPlayer = players.LocalPlayer or players:GetPlayers()[1]
+local espEnabled = true
 
 -- DATA
 local eggChances = {
