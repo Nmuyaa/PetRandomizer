@@ -48,7 +48,7 @@ local function createEspGui(object, labelText)
     local label = Instance.new("TextLabel", billboard)
     label.Size = UDim2.new(1, 0, 1, 0)
     label.BackgroundTransparency = 1
-    label.TextColor3 = Color3.fromRGB(255, 255, 0)
+    label.TextColor3 = Color3.fromRGB(255, 0, 0)
     label.TextScaled = false
     label.Font = Enum.Font.Arcade
     label.TextSize = 13
@@ -63,13 +63,15 @@ local function addESP(egg, eggName, petName)
     local adornee = egg:FindFirstChildWhichIsA("BasePart") or egg.PrimaryPart
     if adornee then
         local gui = createEspGui(adornee, eggName .. " | " .. petName)
-        local aura = Instance.new("SelectionBox")
-        aura.Name = "RedAura"
-        aura.Adornee = adornee
-        aura.LineThickness = 0.1
-        aura.SurfaceTransparency = 0.7
-        aura.Color3 = Color3.fromRGB(255, 0, 0)
-        aura.Parent = adornee
+        local aura = Instance.new("BoxHandleAdornment")
+aura.Name = "RedAura"
+aura.Adornee = adornee
+aura.AlwaysOnTop = true
+aura.ZIndex = 5
+aura.Size = adornee.Size + Vector3.new(0.1, 0.1, 0.1)
+aura.Color3 = Color3.fromRGB(255, 0, 0)
+aura.Transparency = 0.6
+aura.Parent = adornee
 
         displayedEggs[egg] = {
             egg = egg,
