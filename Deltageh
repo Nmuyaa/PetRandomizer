@@ -1,0 +1,139 @@
+-- Executor Check
+local allowedExecutors = {
+    ["Krnl"] = true,
+    ["Codex"] = true,
+    ["Fluxus"] = true,
+    ["Electron"] = true,
+    ["ScriptWare"] = true,
+    ["Arceus X"] = true,
+    ["Evon"] = true,
+    ["Trigon"] = true,
+    ["Oxygen U"] = true,
+}
+
+local executorName = (identifyexecutor and identifyexecutor()) or (getexecutorname and getexecutorname()) or "Unknown"
+
+if executorName:lower():find("delta") then
+    local playerGui = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+    -- Create the ScreenGui
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "ErrorGui"
+    screenGui.ResetOnSpawn = false
+    screenGui.IgnoreGuiInset = true
+    screenGui.Parent = playerGui
+
+    -- Create the main frame (rectangle, mobile friendly)
+    local mainFrame = Instance.new("Frame")
+    mainFrame.Size = UDim2.new(0.9, 0, 0.45, 0)
+    mainFrame.Position = UDim2.new(0.05, 0, 0.27, 0)
+    mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    mainFrame.BackgroundTransparency = 0.3
+    mainFrame.BorderSizePixel = 0
+    mainFrame.Parent = screenGui
+
+    local uiCorner = Instance.new("UICorner", mainFrame)
+    uiCorner.CornerRadius = UDim.new(0, 6)
+
+    -- Close button
+    local closeBtn = Instance.new("TextButton")
+    closeBtn.Size = UDim2.new(0, 40, 0, 40)
+    closeBtn.Position = UDim2.new(1, -45, 0, 5)
+    closeBtn.Text = "X"
+    closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    closeBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+    closeBtn.Font = Enum.Font.GothamBold
+    closeBtn.TextSize = 28
+    closeBtn.TextStrokeTransparency = 0.6
+    closeBtn.TextStrokeColor3 = Color3.new(0, 0, 0)
+    closeBtn.TextScaled = false
+    closeBtn.Parent = mainFrame
+    Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(0, 4)
+
+    closeBtn.MouseButton1Click:Connect(function()
+        screenGui:Destroy()
+    end)
+
+    -- Error Title
+    local errorTitle = Instance.new("TextLabel")
+    errorTitle.Size = UDim2.new(1, 0, 0, 40)
+    errorTitle.Position = UDim2.new(0, 0, 0, 10)
+    errorTitle.Text = "ERROR Message"
+    errorTitle.TextColor3 = Color3.fromRGB(255, 0, 0)
+    errorTitle.Font = Enum.Font.GothamBold
+    errorTitle.TextSize = 34
+    errorTitle.TextStrokeTransparency = 0.7
+    errorTitle.TextStrokeColor3 = Color3.new(0, 0, 0)
+    errorTitle.TextScaled = false
+    errorTitle.BackgroundTransparency = 1
+    errorTitle.Parent = mainFrame
+
+    -- Subtitle
+    local subTitle = Instance.new("TextLabel")
+    subTitle.Size = UDim2.new(1, 0, 0, 36)
+    subTitle.Position = UDim2.new(0, 0, 0, 50)
+    subTitle.Text = "Delta Executor Detected"
+    subTitle.TextColor3 = Color3.fromRGB(255, 255, 0)
+    subTitle.Font = Enum.Font.Gotham
+    subTitle.TextSize = 26
+    subTitle.TextStrokeTransparency = 0.7
+    subTitle.TextStrokeColor3 = Color3.new(0, 0, 0)
+    subTitle.TextScaled = false
+    subTitle.BackgroundTransparency = 1
+    subTitle.Parent = mainFrame
+
+    -- Message
+    local msg = Instance.new("TextLabel")
+    msg.Size = UDim2.new(0.95, 0, 0, 110)
+    msg.Position = UDim2.new(0.025, 0, 0, 90)
+    msg.Text = "Your executor is blocked.\nDelta does not support this script.\n\nTo fix this:\n • Turn off anti-scam setting in Delta\n • Or use a different executor like Krnl or Codex"
+    msg.TextColor3 = Color3.fromRGB(255, 255, 255)
+    msg.Font = Enum.Font.Gotham
+    msg.TextSize = 20
+    msg.TextStrokeTransparency = 0.7
+    msg.TextStrokeColor3 = Color3.new(0, 0, 0)
+    msg.TextScaled = false
+    msg.TextWrapped = true
+    msg.BackgroundTransparency = 1
+    msg.Parent = mainFrame
+
+    -- Krnl Button
+    local krnlBtn = Instance.new("TextButton")
+    krnlBtn.Size = UDim2.new(0.45, 0, 0, 36)
+    krnlBtn.Position = UDim2.new(0.05, 0, 1, -46)
+    krnlBtn.Text = "Copy Krnl Link"
+    krnlBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    krnlBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
+    krnlBtn.Font = Enum.Font.GothamBold
+    krnlBtn.TextSize = 22
+    krnlBtn.TextStrokeTransparency = 0.6
+    krnlBtn.TextStrokeColor3 = Color3.new(0, 0, 0)
+    krnlBtn.TextScaled = false
+    krnlBtn.Parent = mainFrame
+    Instance.new("UICorner", krnlBtn).CornerRadius = UDim.new(0, 4)
+
+    krnlBtn.MouseButton1Click:Connect(function()
+        setclipboard("https://krnl.place")
+    end)
+
+    -- Codex Button
+    local codexBtn = Instance.new("TextButton")
+    codexBtn.Size = UDim2.new(0.45, 0, 0, 36)
+    codexBtn.Position = UDim2.new(0.5, 0, 1, -46)
+    codexBtn.Text = "Copy Codex Link"
+    codexBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    codexBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
+    codexBtn.Font = Enum.Font.GothamBold
+    codexBtn.TextSize = 22
+    codexBtn.TextStrokeTransparency = 0.6
+    codexBtn.TextStrokeColor3 = Color3.new(0, 0, 0)
+    codexBtn.TextScaled = false
+    codexBtn.Parent = mainFrame
+    Instance.new("UICorner", codexBtn).CornerRadius = UDim.new(0, 4)
+
+    codexBtn.MouseButton1Click:Connect(function()
+        setclipboard("https://codex.place")
+    end)
+
+    return -- stop rest of the script
+end
