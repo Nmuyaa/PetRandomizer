@@ -3,6 +3,15 @@ local players = game:GetService("Players")
 local collectionService = game:GetService("CollectionService")
 local localPlayer = players.LocalPlayer or players:GetPlayers()[1]
 local espEnabled = true
+local function rainbowText(label)
+    task.spawn(function()
+        while label and label.Parent do
+            local hue = (tick() % 5) / 5
+            label.TextColor3 = Color3.fromHSV(hue, 1, 1)
+            task.wait(0.1)
+        end
+    end)
+end
 
 -- DATA
 local eggChances = {
@@ -53,6 +62,7 @@ local function createEspGui(object, labelText)
     label.Font = Enum.Font.Arcade
     label.TextSize = 13
     label.Text = labelText
+    rainbowText(label)
     billboard.Parent = game:GetService("CoreGui")
     return billboard
 end
@@ -212,13 +222,15 @@ espBtn.MouseButton1Click:Connect(function()
                 data.label = newGui:FindFirstChild("TextLabel")
             end
             if adornee and not adornee:FindFirstChild("RedAura") then
-                local aura = Instance.new("SelectionBox")
-                aura.Name = "RedAura"
-                aura.Adornee = adornee
-                aura.LineThickness = 0.1
-                aura.SurfaceTransparency = 0.7
-                aura.Color3 = Color3.fromRGB(255, 0, 0)
-                aura.Parent = adornee
+                local aura = Instance.new("BoxHandleAdornment")
+aura.Name = "RedAura"
+aura.Adornee = adornee
+aura.Size = adornee.Size
+aura.Color3 = Color3.fromRGB(255, 0, 0)
+aura.Transparency = 0.6
+aura.AlwaysOnTop = true
+aura.ZIndex = 10
+aura.Parent = egg -- Parent to egg instead of part
             end
         else
             if data.gui then data.gui:Destroy() end
