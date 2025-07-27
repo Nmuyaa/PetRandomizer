@@ -297,3 +297,114 @@ showBtn.MouseButton1Click:Connect(function()
     frame.Visible = true
     showBtn.Visible = false
 end)
+
+-- GUI to set equipped pet age to 50
+
+local character = localPlayer.Character or localPlayer.CharacterAdded:Wait()
+
+local screenGui = Instance.new("ScreenGui", localPlayer:WaitForChild("PlayerGui"))
+screenGui.Name = "FakeAgeChanger"
+screenGui.ResetOnSpawn = false
+
+-- GUI setup
+local frame2 = Instance.new("Frame", screenGui)
+frame2.Size = UDim2.new(0, 260, 0, 150)
+frame2.Position = UDim2.new(0.4, 0, 0.7, 0) -- Adjust position to avoid overlapping
+frame2.BackgroundColor3 = Color3.fromRGB(0, 0, 100)
+frame2.BackgroundTransparency = 0.1
+frame2.BorderSizePixel = 0
+frame2.Active = true
+frame2.Draggable = true
+Instance.new("UICorner", frame2).CornerRadius = UDim.new(0, 12)
+
+local title = Instance.new("TextLabel", frame2)
+title.Text = "Set Equipped Pet Age to 50"
+title.Font = Enum.Font.Arcade
+title.TextSize = 18
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.BackgroundTransparency = 1
+title.Size = UDim2.new(1, 0, 0, 30)
+title.Position = UDim2.new(0, 0, 0, 0)
+
+local petInfo = Instance.new("TextLabel", frame2)
+petInfo.Text = "Equipped Pet: [None]"
+petInfo.Font = Enum.Font.Arcade
+petInfo.TextSize = 16
+petInfo.TextColor3 = Color3.fromRGB(255, 255, 150)
+petInfo.BackgroundTransparency = 1
+petInfo.Position = UDim2.new(0, 0, 0, 30)
+petInfo.Size = UDim2.new(1, 0, 0, 25)
+petInfo.TextScaled = true
+petInfo.TextWrapped = true
+
+local function createStyledButton(text, yPos, color)
+	local btn = Instance.new("TextButton")
+	btn.Size = UDim2.new(0.9, 0, 0, 35)
+	btn.Position = UDim2.new(0.05, 0, 0, yPos)
+	btn.BackgroundColor3 = Color3.fromRGB(40, 43, 74)
+	btn.Text = text
+	btn.Font = Enum.Font.Arcade
+	btn.TextSize = 16
+	btn.TextColor3 = Color3.new(1, 1, 1)
+	btn.AutoButtonColor = false
+
+	Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+	local stroke = Instance.new("UIStroke", btn)
+	stroke.Color = Color3.fromRGB(0, 0, 0)
+	stroke.Thickness = 1.2
+
+	btn.MouseEnter:Connect(function()
+		btn.BackgroundColor3 = color:lerp(Color3.new(1,1,1), 0.2)
+	end)
+	btn.MouseLeave:Connect(function()
+		btn.BackgroundColor3 = color
+	end)
+
+	btn.Parent = frame2
+	return btn
+end
+
+local button = createStyledButton("Set Age to 50", 60, Color3.fromRGB(0, 170, 255))
+
+local function getEquippedPetTool()
+	character = localPlayer.Character or localPlayer.CharacterAdded:Wait()
+	for _, child in pairs(character:GetChildren()) do
+		if child:IsA("Tool") and child.Name:find("Age") then
+			return child
+		end
+	end
+	return nil
+end
+
+local function updateGUI()
+	local pet = getEquippedPetTool()
+	if pet then
+		petInfo.Text = "Equipped Pet: " .. pet.Name
+	else
+		petInfo.Text = "Equipped Pet: [None]"
+	end
+end
+
+button.MouseButton1Click:Connect(function()
+	local tool = getEquippedPetTool()
+	if tool then
+		for i = 20, 1, -1 do
+			button.Text = "Changing Age in " .. i .. "..."
+			wait(1)
+		end
+
+		local newName = tool.Name:gsub("%[Age%s%d+%]", "[Age 50]")
+		tool.Name = newName
+		petInfo.Text = "Equipped Pet: " .. tool.Name
+		button.Text = "Set Age to 50"
+	else
+		button.Text = "No Pet Equipped!"
+		wait(2)
+		button.Text = "Set Age to 50"
+	end
+end)
+
+while true do
+	task.wait(1)
+	updateGUI()
+end
