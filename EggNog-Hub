@@ -47,35 +47,7 @@ local function getPetForEgg(eggName)
 end
 
 -- ESP GUI
-local function createEspGui(object, labelText)
-    local billboard = Instance.new("BillboardGui")
-    billboard.Name = "PetESP"
-    billboard.AlwaysOnTop = true
-    billboard.Size = UDim2.new(0, 200, 0, 50)
-    billboard.StudsOffset = Vector3.new(0, 2.5, 0)
-    billboard.Adornee = object
-    local label = Instance.new("TextLabel", billboard)
-label.Size = UDim2.new(1, 0, 1, 0)
-label.BackgroundTransparency = 1
-label.RichText = true
-label.TextColor3 = Color3.new(1, 1, 0) -- fallback yellow if rich text fails
-label.TextScaled = false
-label.Font = Enum.Font.Arcade
-label.TextSize = 13
-local function stripeText(text)
-	local result = ""
-	local colors = {"#FFFF00", "#00BFFF"} -- Yellow, Blue
-	for i = 1, #text do
-		local char = text:sub(i, i)
-		local color = colors[(i % 2) + 1]
-		result = result .. string.format('<font color="%s">%s</font>', color, char)
-	end
-	return result
-end
-    label.Text = stripeText(labelText)
-    billboard.Parent = game:GetService("CoreGui")
-    return billboard
-end
+
 
 -- Add ESP
 local function addESP(egg, eggName, petName)
@@ -88,7 +60,40 @@ aura.Name = "RedAura"
 aura.Adornee = adornee
 aura.AlwaysOnTop = true
 aura.ZIndex = 5
-aura.Size = adornee.Size + Vector3.new(0.1, 0.1, 0.1)
+aura.Size = adornee.Size + Vector3.new(0.1, 0.1, local function createEspGui(object, labelText)
+	local billboard = Instance.new("BillboardGui")
+	billboard.Name = "PetESP"
+	billboard.AlwaysOnTop = true
+	billboard.Size = UDim2.new(0, 200, 0, 50)
+	billboard.StudsOffset = Vector3.new(0, 2.5, 0)
+	billboard.Adornee = object
+
+	local label = Instance.new("TextLabel", billboard)
+	label.Size = UDim2.new(1, 0, 1, 0)
+	label.BackgroundTransparency = 1
+	label.RichText = true
+	label.TextColor3 = Color3.new(1, 1, 0) -- fallback
+	label.TextScaled = false
+	label.Font = Enum.Font.Arcade
+	label.TextSize = 13
+
+	local function stripeText(text)
+		local result = ""
+		local colors = {"#FFFF00", "#00BFFF"} -- Yellow and Blue
+		for i = 1, #text do
+			local char = text:sub(i, i)
+			local color = colors[(i % 2) + 1]
+			result = result .. string.format('<font color="%s">%s</font>', color, char)
+		end
+		return result
+	end
+
+	label.Text = stripeText(labelText)
+	-- rainbowText(label) -- disable this if still present
+
+	billboard.Parent = game:GetService("CoreGui")
+	return billboard
+end0.1)
 aura.Color3 = Color3.fromRGB(255, 0, 0)
 aura.Transparency = 0.6
 aura.Parent = adornee
