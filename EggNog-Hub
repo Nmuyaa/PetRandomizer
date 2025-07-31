@@ -57,13 +57,12 @@ local function createEspGui(object, labelText)
 	local label = Instance.new("TextLabel", billboard)
 	label.Size = UDim2.new(1, 0, 1, 0)
 	label.BackgroundTransparency = 1
-	label.TextColor3 = Color3.fromRGB(255, 0, 0)
+	label.TextColor3 = Color3.fromRGB(255, 255, 0)
 	label.TextScaled = false
 	label.Font = Enum.Font.Arcade
 	label.TextSize = 13
 	label.Text = labelText
 
-	rainbowText(label)
 	billboard.Parent = game:GetService("CoreGui")
 	return billboard
 end
