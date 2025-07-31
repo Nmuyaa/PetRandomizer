@@ -3,32 +3,31 @@ local players = game:GetService("Players")
 local collectionService = game:GetService("CollectionService")
 local localPlayer = players.LocalPlayer or players:GetPlayers()[1]
 local espEnabled = true
-
 local function rainbowText(label)
-	task.spawn(function()
-		while label and label.Parent do
-			local hue = (tick() % 5) / 5
-			label.TextColor3 = Color3.fromHSV(hue, 1, 1)
-			task.wait(0.1)
-		end
-	end)
+    task.spawn(function()
+        while label and label.Parent do
+            local hue = (tick() % 5) / 5
+            label.TextColor3 = Color3.fromHSV(hue, 1, 1)
+            task.wait(0.1)
+        end
+    end)
 end
 
--- EGG CHANCES
+-- DATA
 local eggChances = {
-	["Common Egg"] = {["Dog"] = 33, ["Bunny"] = 33, ["Golden Lab"] = 33},
-	["Zen Egg"] = {["Shiba Inu"] = 40, ["Nihonzaru"] = 31, ["Tanuki"] = 20, ["Tanchozuru"] = 4, ["Kappa"] = 3, ["Kitsune"] = 10},
-	["Primal Egg"] = {["Parasaurolophus"] = 35, ["Iguanodon"] = 32.5, ["Pachycephalosaurus"] = 28, ["Dilophosaurus"] = 3, ["Ankylosaurus"] = 1, ["Spinosaurus"] = 0},
-	["Legendary Egg"] = {["Cow"] = 42.55, ["Silver Monkey"] = 42.55, ["Sea Otter"] = 10.64, ["Turtle"] = 2.13, ["Polar Bear"] = 2.13},
-	["Mythical Egg"] = {["Grey Mouse"] = 37.5, ["Brown Mouse"] = 26.79, ["Squirrel"] = 26.79, ["Red Giant Ant"] = 8.93, ["Red Fox"] = 0},
-	["Bug Egg"] = {["Snail"] = 40, ["Giant Ant"] = 35, ["Caterpillar"] = 25, ["Praying Mantis"] = 0, ["Dragon Fly"] = 0},
-	["Night Egg"] = {["Hedgehog"] = 47, ["Mole"] = 23.5, ["Frog"] = 21.16, ["Echo Frog"] = 8.35, ["Night Owl"] = 0, ["Raccoon"] = 0},
-	["Bee Egg"] = {["Bee"] = 65, ["Honey Bee"] = 20, ["Bear Bee"] = 10, ["Petal Bee"] = 5, ["Queen Bee"] = 0},
-	["Anti Bee Egg"] = {["Wasp"] = 55, ["Tarantula Hawk"] = 31, ["Moth"] = 14, ["Butterfly"] = 0, ["Disco Bee"] = 0},
-	["Dinosaur Egg"] = {["Raptor"] = 35, ["Triceratops"] = 32.5, ["Stegosaurus"] = 28, ["Pterodactyl"] = 3, ["Brontosaurus"] = 0, ["T-Rex"] = 0},
-	["Rare Summer Egg"] = {["Flamingo"] = 30, ["Toucan"] = 25, ["Sea Turtle"] = 20, ["Orangutan"] = 15, ["Seal"] = 10},
-	["Paradise Egg"] = {["Ostrich"] = 43, ["Peacock"] = 33, ["Capybara"] = 24, ["Scarlet Macaw"] = 3, ["Mimic Octopus"] = 0},
-	["Premium Night Egg"] = {["Hedgehog"] = 50, ["Mole"] = 26, ["Frog"] = 14, ["Echo Frog"] = 10},
+    ["Common Egg"] = {["Dog"] = 33, ["Bunny"] = 33, ["Golden Lab"] = 33},
+    ["Zen Egg"] = {["Shiba Inu"] = 40, ["Nihonzaru"] = 31, ["Tanuki"] = 20, ["Tanchozuru"] = 4, ["Kappa"] = 3, ["Kitsune"] = 10},
+    ["Primal Egg"] = {["Parasaurolophus"] = 35, ["Iguanodon"] = 32.5, ["Pachycephalosaurus"] = 28, ["Dilophosaurus"] = 3, ["Ankylosaurus"] = 1, ["Spinosaurus"] = 0},
+    ["Legendary Egg"] = {["Cow"] = 42.55, ["Silver Monkey"] = 42.55, ["Sea Otter"] = 10.64, ["Turtle"] = 2.13, ["Polar Bear"] = 2.13},
+    ["Mythical Egg"] = {["Grey Mouse"] = 37.5, ["Brown Mouse"] = 26.79, ["Squirrel"] = 26.79, ["Red Giant Ant"] = 8.93, ["Red Fox"] = 0},
+    ["Bug Egg"] = {["Snail"] = 40, ["Giant Ant"] = 35, ["Caterpillar"] = 25, ["Praying Mantis"] = 0, ["Dragon Fly"] = 0},
+    ["Night Egg"] = {["Hedgehog"] = 47, ["Mole"] = 23.5, ["Frog"] = 21.16, ["Echo Frog"] = 8.35, ["Night Owl"] = 0, ["Raccoon"] = 0},
+    ["Bee Egg"] = {["Bee"] = 65, ["Honey Bee"] = 20, ["Bear Bee"] = 10, ["Petal Bee"] = 5, ["Queen Bee"] = 0},
+    ["Anti Bee Egg"] = {["Wasp"] = 55, ["Tarantula Hawk"] = 31, ["Moth"] = 14, ["Butterfly"] = 0, ["Disco Bee"] = 0},
+    ["Dinosaur Egg"] = {["Raptor"] = 35, ["Triceratops"] = 32.5, ["Stegosaurus"] = 28, ["Pterodactyl"] = 3, ["Brontosaurus"] = 0, ["T-Rex"] = 0},
+    ["Rare Summer Egg"] = {["Flamingo"] = 30, ["Toucan"] = 25, ["Sea Turtle"] = 20, ["Orangutan"] = 15, ["Seal"] = 10},
+    ["Paradise Egg"] = {["Ostrich"] = 43, ["Peacock"] = 33, ["Capybara"] = 24, ["Scarlet Macaw"] = 3, ["Mimic Octopus"] = 0},
+    ["Premium Night Egg"] = {["Hedgehog"] = 50, ["Mole"] = 26, ["Frog"] = 14, ["Echo Frog"] = 10},
 }
 
 local displayedEggs = {}
@@ -36,94 +35,97 @@ local cooldown = 5
 local canClick = true
 local autoReroll = false
 
+-- Get a pet for egg
 local function getPetForEgg(eggName)
-	local pets = eggChances[eggName]
-	if not pets then return "?" end
-	local valid = {}
-	for pet, chance in pairs(pets) do
-		if chance > 0 then table.insert(valid, pet) end
-	end
-	return #valid > 0 and valid[math.random(1, #valid)] or "?"
+    local pets = eggChances[eggName]
+    if not pets then return "?" end
+    local valid = {}
+    for pet, chance in pairs(pets) do
+        if chance > 0 then table.insert(valid, pet) end
+    end
+    return #valid > 0 and valid[math.random(1, #valid)] or "?"
 end
 
+-- ESP GUI
 local function createEspGui(object, labelText)
-	local billboard = Instance.new("BillboardGui")
-	billboard.Name = "PetESP"
-	billboard.AlwaysOnTop = true
-	billboard.Size = UDim2.new(0, 200, 0, 50)
-	billboard.StudsOffset = Vector3.new(0, 2.5, 0)
-	billboard.Adornee = object
-
-	local label = Instance.new("TextLabel", billboard)
-	label.Size = UDim2.new(1, 0, 1, 0)
-	label.BackgroundTransparency = 1
-	label.TextColor3 = Color3.fromRGB(255, 0, 0)
-	label.TextScaled = false
-	label.Font = Enum.Font.Arcade
-	label.TextSize = 13
-	label.Text = labelText
-
-	rainbowText(label)
-	billboard.Parent = game:GetService("CoreGui")
-	return billboard
+    local billboard = Instance.new("BillboardGui")
+    billboard.Name = "PetESP"
+    billboard.AlwaysOnTop = true
+    billboard.Size = UDim2.new(0, 200, 0, 50)
+    billboard.StudsOffset = Vector3.new(0, 2.5, 0)
+    billboard.Adornee = object
+    local label = Instance.new("TextLabel", billboard)
+    label.Size = UDim2.new(1, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.TextColor3 = Color3.fromRGB(255, 0, 0)
+    label.TextScaled = false
+    label.Font = Enum.Font.Arcade
+    label.TextSize = 13
+    label.Text = labelText
+    rainbowText(label)
+    billboard.Parent = game:GetService("CoreGui")
+    return billboard
 end
 
+-- Add ESP
 local function addESP(egg, eggName, petName)
-	if not espEnabled then return end
-	local adornee = egg:FindFirstChildWhichIsA("BasePart") or egg.PrimaryPart
-	if adornee then
-		local gui = createEspGui(adornee, eggName .. " | " .. petName)
-		local aura = Instance.new("BoxHandleAdornment")
-		aura.Name = "RedAura"
-		aura.Adornee = adornee
-		aura.AlwaysOnTop = true
-		aura.ZIndex = 5
-		aura.Size = adornee.Size + Vector3.new(0.1, 0.1, 0.1)
-		aura.Color3 = Color3.fromRGB(255, 0, 0)
-		aura.Transparency = 0.6
-		aura.Parent = adornee
+    if not espEnabled then return end
+    local adornee = egg:FindFirstChildWhichIsA("BasePart") or egg.PrimaryPart
+    if adornee then
+        local gui = createEspGui(adornee, eggName .. " | " .. petName)
+        local aura = Instance.new("BoxHandleAdornment")
+aura.Name = "RedAura"
+aura.Adornee = adornee
+aura.AlwaysOnTop = true
+aura.ZIndex = 5
+aura.Size = adornee.Size + Vector3.new(0.1, 0.1, 0.1)
+aura.Color3 = Color3.fromRGB(255, 0, 0)
+aura.Transparency = 0.6
+aura.Parent = adornee
 
-		displayedEggs[egg] = {
-			egg = egg,
-			gui = gui,
-			label = gui:FindFirstChild("TextLabel"),
-			selectionBox = aura,
-			eggName = eggName,
-			currentPet = petName
-		}
-	end
+        displayedEggs[egg] = {
+            egg = egg,
+            gui = gui,
+            label = gui:FindFirstChild("TextLabel"),
+            selectionBox = aura,
+            eggName = eggName,
+            currentPet = petName
+        }
+    end
 end
 
+-- Remove ESP
 local function removeESP(egg)
-	local data = displayedEggs[egg]
-	if data then
-		if data.gui then data.gui:Destroy() end
-		if data.selectionBox then data.selectionBox:Destroy() end
-		displayedEggs[egg] = nil
-	end
+    local data = displayedEggs[egg]
+    if data then
+        if data.gui then data.gui:Destroy() end
+        if data.selectionBox then data.selectionBox:Destroy() end
+        displayedEggs[egg] = nil
+    end
 end
 
+-- CONNECT TO TAGGED EGGS
 for _, egg in collectionService:GetTagged("PetEggServer") do
-	local eggName = egg:GetAttribute("EggName") or "Unknown Egg"
-	local petName = getPetForEgg(eggName)
-	addESP(egg, eggName, petName)
+    local eggName = egg:GetAttribute("EggName") or "Unknown Egg"
+    local petName = getPetForEgg(eggName)
+    addESP(egg, eggName, petName)
 end
 
 collectionService:GetInstanceAddedSignal("PetEggServer"):Connect(function(egg)
-	local eggName = egg:GetAttribute("EggName") or "Unknown Egg"
-	local petName = getPetForEgg(eggName)
-	addESP(egg, eggName, petName)
+    local eggName = egg:GetAttribute("EggName") or "Unknown Egg"
+    local petName = getPetForEgg(eggName)
+    addESP(egg, eggName, petName)
 end)
 
 collectionService:GetInstanceRemovedSignal("PetEggServer"):Connect(removeESP)
 
--- MAIN GUI
+-- GUI SETUP
 local gui = Instance.new("ScreenGui", localPlayer:WaitForChild("PlayerGui"))
 gui.Name = "PetPredictorUI"
 gui.ResetOnSpawn = false
 
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0, 260, 0, 280)
+frame.Size = UDim2.new(0, 260, 0, 200)
 frame.Position = UDim2.new(0.5, -130, 0.3, 0)
 frame.BackgroundColor3 = Color3.fromRGB(30, 20, 50)
 frame.BorderSizePixel = 0
@@ -151,7 +153,7 @@ close.Font = Enum.Font.Arcade
 close.TextSize = 16
 Instance.new("UICorner", close).CornerRadius = UDim.new(0, 4)
 
--- Buttons
+-- BUTTONS
 local predict = Instance.new("TextButton", frame)
 predict.Size = UDim2.new(0, 220, 0, 36)
 predict.Position = UDim2.new(0.5, -110, 0, 50)
@@ -163,33 +165,37 @@ predict.Text = "🎲 Reroll Egg"
 Instance.new("UICorner", predict).CornerRadius = UDim.new(0, 4)
 
 predict.MouseButton1Click:Connect(function()
-	if not canClick then return end
-	canClick = false
-	for _, data in pairs(displayedEggs) do
-		local newPet = getPetForEgg(data.eggName)
-		data.currentPet = newPet
-		if data.label then
-			data.label.Text = string.format("%s | %s (Cooldown...)", data.eggName, newPet)
-		end
-	end
-	task.spawn(function()
-		local startTime = tick()
-		while tick() - startTime < cooldown do
-			local timeLeft = cooldown - (tick() - startTime)
-			for _, data in pairs(displayedEggs) do
-				if data.label then
-					data.label.Text = string.format("%s | %s (%.2fs)", data.eggName, data.currentPet, timeLeft)
-				end
-			end
-			task.wait(0.1)
-		end
-		for _, data in pairs(displayedEggs) do
-			if data.label then
-				data.label.Text = string.format("%s | %s", data.eggName, data.currentPet)
-			end
-		end
-		canClick = true
-	end)
+    if not canClick then return end
+    canClick = false
+
+    for _, data in pairs(displayedEggs) do
+        local newPet = getPetForEgg(data.eggName)
+        data.currentPet = newPet
+        if data.label then
+            data.label.Text = string.format("%s | %s (Cooldown...)", data.eggName, newPet)
+        end
+    end
+
+    task.spawn(function()
+        local startTime = tick()
+        while tick() - startTime < cooldown do
+            local timeLeft = cooldown - (tick() - startTime)
+            for _, data in pairs(displayedEggs) do
+                if data and data.label then
+                    data.label.Text = string.format("%s | %s (%.2fs)", data.eggName, data.currentPet, timeLeft)
+                end
+            end
+            task.wait(0.1)
+        end
+
+        for _, data in pairs(displayedEggs) do
+            if data and data.label then
+                data.label.Text = string.format("%s | %s", data.eggName, data.currentPet)
+            end
+        end
+
+        canClick = true
+    end)
 end)
 
 local espBtn = Instance.new("TextButton", frame)
@@ -203,34 +209,36 @@ espBtn.Text = "ESP: ON"
 Instance.new("UICorner", espBtn).CornerRadius = UDim.new(0, 4)
 
 espBtn.MouseButton1Click:Connect(function()
-	espEnabled = not espEnabled
-	espBtn.Text = "ESP: " .. (espEnabled and "ON" or "OFF")
-	for _, data in pairs(displayedEggs) do
-		local adornee = data.egg:FindFirstChildWhichIsA("BasePart") or data.egg.PrimaryPart
-		if espEnabled then
-			if not data.gui or not data.gui.Parent then
-				local newGui = createEspGui(adornee, data.eggName .. " | " .. data.currentPet)
-				data.gui = newGui
-				data.label = newGui:FindFirstChild("TextLabel")
-			end
-			if adornee and not adornee:FindFirstChild("RedAura") then
-				local aura = Instance.new("BoxHandleAdornment")
-				aura.Name = "RedAura"
-				aura.Adornee = adornee
-				aura.Size = adornee.Size
-				aura.Color3 = Color3.fromRGB(255, 0, 0)
-				aura.Transparency = 0.6
-				aura.AlwaysOnTop = true
-				aura.ZIndex = 10
-				aura.Parent = adornee
-			end
-		else
-			if data.gui then data.gui:Destroy() end
-			if adornee and adornee:FindFirstChild("RedAura") then
-				adornee.RedAura:Destroy()
-			end
-		end
-	end
+    espEnabled = not espEnabled
+    espBtn.Text = "ESP: " .. (espEnabled and "ON" or "OFF")
+
+    for _, data in pairs(displayedEggs) do
+        local adornee = data.egg:FindFirstChildWhichIsA("BasePart") or data.egg.PrimaryPart
+
+        if espEnabled then
+            if not data.gui or not data.gui.Parent then
+                local newGui = createEspGui(adornee, data.eggName .. " | " .. data.currentPet)
+                data.gui = newGui
+                data.label = newGui:FindFirstChild("TextLabel")
+            end
+            if adornee and not adornee:FindFirstChild("RedAura") then
+                local aura = Instance.new("BoxHandleAdornment")
+aura.Name = "RedAura"
+aura.Adornee = adornee
+aura.Size = adornee.Size
+aura.Color3 = Color3.fromRGB(255, 0, 0)
+aura.Transparency = 0.6
+aura.AlwaysOnTop = true
+aura.ZIndex = 10
+aura.Parent = egg -- Parent to egg instead of part
+            end
+        else
+            if data.gui then data.gui:Destroy() end
+            if adornee and adornee:FindFirstChild("RedAura") then
+                adornee.RedAura:Destroy()
+            end
+        end
+    end
 end)
 
 local autoBtn = Instance.new("TextButton", frame)
@@ -244,17 +252,18 @@ autoBtn.Text = "Auto Reroll: OFF"
 Instance.new("UICorner", autoBtn).CornerRadius = UDim.new(0, 4)
 
 autoBtn.MouseButton1Click:Connect(function()
-	autoReroll = not autoReroll
-	autoBtn.Text = "Auto Reroll: " .. (autoReroll and "ON" or "OFF")
+    autoReroll = not autoReroll
+    autoBtn.Text = "Auto Reroll: " .. (autoReroll and "ON" or "OFF")
 end)
 
+-- Auto reroll loop
 task.spawn(function()
-	while true do
-		task.wait(cooldown)
-		if autoReroll and canClick then
-			predict:Activate()
-		end
-	end
+    while true do
+        task.wait(cooldown)
+        if autoReroll and canClick then
+            predict:Activate()
+        end
+    end
 end)
 
 -- Credits
@@ -280,40 +289,85 @@ Instance.new("UICorner", showBtn).CornerRadius = UDim.new(0, 4)
 showBtn.Visible = false
 
 close.MouseButton1Click:Connect(function()
-	frame.Visible = false
-	showBtn.Visible = true
+    frame.Visible = false
+    showBtn.Visible = true
 end)
 
 showBtn.MouseButton1Click:Connect(function()
-	frame.Visible = true
-	showBtn.Visible = false
+    frame.Visible = true
+    showBtn.Visible = false
 end)
 
--- === Set Pet Age to 50 Section ===
-local petInfo = Instance.new("TextLabel", frame)
+-- GUI to set equipped pet age to 50
+
+local character = localPlayer.Character or localPlayer.CharacterAdded:Wait()
+
+local screenGui = Instance.new("ScreenGui", localPlayer:WaitForChild("PlayerGui"))
+screenGui.Name = "FakeAgeChanger"
+screenGui.ResetOnSpawn = false
+
+-- GUI setup
+local frame2 = Instance.new("Frame", screenGui)
+frame2.Size = UDim2.new(0, 260, 0, 150)
+frame2.Position = UDim2.new(0.4, 0, 0.7, 0) -- Adjust position to avoid overlapping
+frame2.BackgroundColor3 = Color3.fromRGB(0, 0, 100)
+frame2.BackgroundTransparency = 0.1
+frame2.BorderSizePixel = 0
+frame2.Active = true
+frame2.Draggable = true
+Instance.new("UICorner", frame2).CornerRadius = UDim.new(0, 12)
+
+local title = Instance.new("TextLabel", frame2)
+title.Text = "Set Equipped Pet Age to 50"
+title.Font = Enum.Font.Arcade
+title.TextSize = 18
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.BackgroundTransparency = 1
+title.Size = UDim2.new(1, 0, 0, 30)
+title.Position = UDim2.new(0, 0, 0, 0)
+
+local petInfo = Instance.new("TextLabel", frame2)
 petInfo.Text = "Equipped Pet: [None]"
 petInfo.Font = Enum.Font.Arcade
-petInfo.TextSize = 14
+petInfo.TextSize = 16
 petInfo.TextColor3 = Color3.fromRGB(255, 255, 150)
 petInfo.BackgroundTransparency = 1
-petInfo.Position = UDim2.new(0.05, 0, 0, 160)
-petInfo.Size = UDim2.new(0.9, 0, 0, 20)
+petInfo.Position = UDim2.new(0, 0, 0, 30)
+petInfo.Size = UDim2.new(1, 0, 0, 25)
 petInfo.TextScaled = true
 petInfo.TextWrapped = true
 
-local ageButton = Instance.new("TextButton", frame)
-ageButton.Size = UDim2.new(0.9, 0, 0, 35)
-ageButton.Position = UDim2.new(0.05, 0, 0, 185)
-ageButton.BackgroundColor3 = Color3.fromRGB(40, 43, 74)
-ageButton.Text = "Set Equipped Pet Age to 50"
-ageButton.Font = Enum.Font.Arcade
-ageButton.TextSize = 16
-ageButton.TextColor3 = Color3.new(1, 1, 1)
-ageButton.AutoButtonColor = false
-Instance.new("UICorner", ageButton).CornerRadius = UDim.new(0, 6)
+local function createStyledButton(text, yPos, color)
+	local btn = Instance.new("TextButton")
+	btn.Size = UDim2.new(0.9, 0, 0, 35)
+	btn.Position = UDim2.new(0.05, 0, 0, yPos)
+	btn.BackgroundColor3 = Color3.fromRGB(40, 43, 74)
+	btn.Text = text
+	btn.Font = Enum.Font.Arcade
+	btn.TextSize = 16
+	btn.TextColor3 = Color3.new(1, 1, 1)
+	btn.AutoButtonColor = false
+
+	Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+	local stroke = Instance.new("UIStroke", btn)
+	stroke.Color = Color3.fromRGB(0, 0, 0)
+	stroke.Thickness = 1.2
+
+	btn.MouseEnter:Connect(function()
+		btn.BackgroundColor3 = color:lerp(Color3.new(1,1,1), 0.2)
+	end)
+	btn.MouseLeave:Connect(function()
+		btn.BackgroundColor3 = color
+	end)
+
+	btn.Parent = frame2
+	return btn
+end
+
+local button = createStyledButton("Set Age to 50", 60, Color3.fromRGB(0, 170, 255))
 
 local function getEquippedPetTool()
-	local character = localPlayer.Character or localPlayer.CharacterAdded:Wait()
+	character = localPlayer.Character or localPlayer.CharacterAdded:Wait()
 	for _, child in pairs(character:GetChildren()) do
 		if child:IsA("Tool") and child.Name:find("Age") then
 			return child
@@ -322,7 +376,7 @@ local function getEquippedPetTool()
 	return nil
 end
 
-local function updateEquippedPetText()
+local function updateGUI()
 	local pet = getEquippedPetTool()
 	if pet then
 		petInfo.Text = "Equipped Pet: " .. pet.Name
@@ -331,27 +385,26 @@ local function updateEquippedPetText()
 	end
 end
 
-ageButton.MouseButton1Click:Connect(function()
+button.MouseButton1Click:Connect(function()
 	local tool = getEquippedPetTool()
 	if tool then
-		for i = 5, 1, -1 do
-			ageButton.Text = "Setting age in " .. i .. "..."
-			task.wait(1)
+		for i = 20, 1, -1 do
+			button.Text = "Changing Age in " .. i .. "..."
+			wait(1)
 		end
+
 		local newName = tool.Name:gsub("%[Age%s%d+%]", "[Age 50]")
 		tool.Name = newName
 		petInfo.Text = "Equipped Pet: " .. tool.Name
-		ageButton.Text = "Set Equipped Pet Age to 50"
+		button.Text = "Set Age to 50"
 	else
-		ageButton.Text = "No Pet Equipped!"
+		button.Text = "No Pet Equipped!"
 		wait(2)
-		ageButton.Text = "Set Equipped Pet Age to 50"
+		button.Text = "Set Age to 50"
 	end
 end)
 
-task.spawn(function()
-	while true do
-		task.wait(1)
-		updateEquippedPetText()
-	end
-end)
+while true do
+	task.wait(1)
+	updateGUI()
+end
