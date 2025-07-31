@@ -55,14 +55,24 @@ local function createEspGui(object, labelText)
     billboard.StudsOffset = Vector3.new(0, 2.5, 0)
     billboard.Adornee = object
     local label = Instance.new("TextLabel", billboard)
-    label.Size = UDim2.new(1, 0, 1, 0)
-    label.BackgroundTransparency = 1
-    label.TextColor3 = Color3.fromRGB(255, 0, 0)
-    label.TextScaled = false
-    label.Font = Enum.Font.Arcade
-    label.TextSize = 13
-    label.Text = labelText
-    rainbowText(label)
+label.Size = UDim2.new(1, 0, 1, 0)
+label.BackgroundTransparency = 1
+label.RichText = true
+label.TextColor3 = Color3.new(1, 1, 0) -- fallback yellow if rich text fails
+label.TextScaled = false
+label.Font = Enum.Font.Arcade
+label.TextSize = 13
+local function stripeText(text)
+	local result = ""
+	local colors = {"#FFFF00", "#00BFFF"} -- Yellow, Blue
+	for i = 1, #text do
+		local char = text:sub(i, i)
+		local color = colors[(i % 2) + 1]
+		result = result .. string.format('<font color="%s">%s</font>', color, char)
+	end
+	return result
+end
+    label.Text = stripeText(labelText)
     billboard.Parent = game:GetService("CoreGui")
     return billboard
 end
