@@ -551,47 +551,11 @@ end)
     buyBtn.MouseButton1Click:Connect(function()
         if not buyBtn.Active then return end
         Config.FakeBalance = newBalance
-
-buyBtn.Active = false
-buyLbl.Text = "Processing Purchase..."
-
--- Disable X button
-xBtn.Active = false
-
--- Smooth button flash
-TweenService:Create(fillBar,
-    TweenInfo.new(0.15),
-    {BackgroundColor3 = Color3.fromRGB(0,170,255)}
-):Play()
-
--- Slight delay like real Blox Fruits
-task.wait(1)
-
--- Fade modal away smoothly
-TweenService:Create(fadeBg,
-    TweenInfo.new(0.25),
-    {BackgroundTransparency = 1}
-):Play()
-
-TweenService:Create(modal,
-    TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
-    {
-        Size = UDim2.fromOffset(390,210),
-        BackgroundTransparency = 1
-    }
-):Play()
-
-task.delay(0.25, function()
-    gui:Destroy()
-
-    -- Notification first
-    showGiftNotification(productInfo.Name, recipient, nil)
-
-    -- Then purchase complete popup
-    task.delay(1, function()
+        gui:Destroy()
+        showGiftNotification(productInfo.Name, recipient, nil)
         showPurchaseDone(productInfo, recipient)
     end)
-end)
+end
 
 -- ============================================================
 --  HELPERS
