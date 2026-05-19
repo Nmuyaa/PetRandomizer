@@ -1,356 +1,1017 @@
--- SERVICES
-local players = game:GetService("Players")
-local collectionService = game:GetService("CollectionService")
-local localPlayer = players.LocalPlayer or players:GetPlayers()[1]
-local espEnabled = true
+--[[
+    ██╗  ██╗ █████╗ ███████╗███████╗    ██╗  ██╗██╗   ██╗██████╗
+    ██║  ██║██╔══██╗╚══███╔╝██╔════╝    ██║  ██║██║   ██║██╔══██╗
+    ███████║███████║  ███╔╝ █████╗      ███████║██║   ██║██████╔╝
+    ██╔══██║██╔══██║ ███╔╝  ██╔══╝      ██╔══██║██║   ██║██╔══██╗
+    ██║  ██║██║  ██║███████╗███████╗    ██║  ██║╚██████╔╝██████╔╝
+    ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚══════╝    ╚═╝  ╚═╝ ╚═════╝ ╚═════╝
+    HazeHub — Blox Fruits Fake Gift Script v2
+--]]
 
-local function rainbowText(label)
-	task.spawn(function()
-		while label and label.Parent do
-			local hue = (tick() % 5) / 5
-			label.TextColor3 = Color3.fromHSV(hue, 1, 1)
-			task.wait(0.1)
-		end
-	end)
-end
+local Players            = game:GetService("Players")
+local TweenService       = game:GetService("TweenService")
+local MarketplaceService = game:GetService("MarketplaceService")
+local UserInputService   = game:GetService("UserInputService")
 
--- EGG CHANCES
-local eggChances = {
-	["Common Egg"] = {["Dog"] = 33, ["Bunny"] = 33, ["Golden Lab"] = 33},
-	["Zen Egg"] = {["Shiba Inu"] = 40, ["Nihonzaru"] = 31, ["Tanuki"] = 20, ["Tanchozuru"] = 4, ["Kappa"] = 3, ["Kitsune"] = 0},
-	["Primal Egg"] = {["Parasaurolophus"] = 35, ["Iguanodon"] = 32.5, ["Pachycephalosaurus"] = 28, ["Dilophosaurus"] = 3, ["Ankylosaurus"] = 1, ["Spinosaurus"] = 0},
-	["Legendary Egg"] = {["Cow"] = 42.55, ["Silver Monkey"] = 42.55, ["Sea Otter"] = 10.64, ["Turtle"] = 2.13, ["Polar Bear"] = 2.13},
-	["Mythical Egg"] = {["Grey Mouse"] = 37.5, ["Brown Mouse"] = 26.79, ["Squirrel"] = 26.79, ["Red Giant Ant"] = 8.93, ["Red Fox"] = 0},
-	["Bug Egg"] = {["Snail"] = 40, ["Giant Ant"] = 35, ["Caterpillar"] = 25, ["Praying Mantis"] = 0, ["Dragon Fly"] = 0},
-	["Night Egg"] = {["Hedgehog"] = 47, ["Mole"] = 23.5, ["Frog"] = 21.16, ["Echo Frog"] = 8.35, ["Night Owl"] = 0, ["Raccoon"] = 0},
-	["Bee Egg"] = {["Bee"] = 65, ["Honey Bee"] = 20, ["Bear Bee"] = 10, ["Petal Bee"] = 5, ["Queen Bee"] = 0},
-	["Anti Bee Egg"] = {["Wasp"] = 55, ["Tarantula Hawk"] = 31, ["Moth"] = 14, ["Butterfly"] = 0, ["Disco Bee"] = 0},
-	["Dinosaur Egg"] = {["Raptor"] = 35, ["Triceratops"] = 32.5, ["Stegosaurus"] = 28, ["Pterodactyl"] = 3, ["Brontosaurus"] = 0, ["T-Rex"] = 0},
-	["Rare Summer Egg"] = {["Flamingo"] = 30, ["Toucan"] = 25, ["Sea Turtle"] = 20, ["Orangutan"] = 15, ["Seal"] = 10},
-	["Paradise Egg"] = {["Ostrich"] = 43, ["Peacock"] = 33, ["Capybara"] = 24, ["Scarlet Macaw"] = 3, ["Mimic Octopus"] = 0},
-	["Premium Night Egg"] = {["Hedgehog"] = 50, ["Mole"] = 26, ["Frog"] = 14, ["Echo Frog"] = 10},
+local localPlayer = Players.LocalPlayer
+local playerGui   = localPlayer:WaitForChild("PlayerGui")
+
+-- ============================================================
+--  CONFIG
+-- ============================================================
+local Config = {
+    FakeBalance   = 5000000,
+    BuyAccent     = Color3.fromRGB(0,   110, 255),
+    BuyAccentDark = Color3.fromRGB(0,   60,  160),
+    BgDark        = Color3.fromRGB(18,  18,  24),
+    BgMid         = Color3.fromRGB(28,  28,  38),
+    BgLight       = Color3.fromRGB(48,  48,  62),
+    TextMain      = Color3.fromRGB(240, 240, 255),
+    TextSub       = Color3.fromRGB(160, 160, 190),
+    PanelRed      = Color3.fromRGB(180, 20,  20),
+    PanelRedDark  = Color3.fromRGB(30,  8,   8),
 }
 
-local displayedEggs = {}
-local cooldown = 5
-local canClick = true
-local autoReroll = false
+-- ============================================================
+--  FRUIT DATABASE
+--  icon = your uploaded decal asset ID (rbxassetid://XXXXXXX)
+--  outline = colored border shown around the icon
+-- ============================================================
+local BLOX_LOGO = "rbxassetid://2804185542"
 
-local function getPetForEgg(eggName)
-	local pets = eggChances[eggName]
-	if not pets then return "?" end
-	local valid = {}
-	for pet, chance in pairs(pets) do
-		if chance > 0 then table.insert(valid, pet) end
-	end
-	return #valid > 0 and valid[math.random(1, #valid)] or "?"
+local Fruits = {
+    {name="Bomb",    id=44669609, price=275,  icon=BLOX_LOGO, outline=Color3.fromRGB(80,80,80)    },
+    {name="Spike",   id=44669616, price=300,  icon=BLOX_LOGO, outline=Color3.fromRGB(80,80,80)    },
+    {name="Chop",    id=44669618, price=100,  icon=BLOX_LOGO, outline=Color3.fromRGB(80,80,80)    },
+    {name="Spring",  id=44669621, price=60,   icon=BLOX_LOGO, outline=Color3.fromRGB(80,80,80)    },
+    {name="Kilo",    id=44669613, price=70,   icon=BLOX_LOGO, outline=Color3.fromRGB(80,80,80)    },
+    {name="Smoke",   id=44669624, price=100,  icon=BLOX_LOGO, outline=Color3.fromRGB(180,180,180) },
+    {name="Spin",    id=44669628, price=180,  icon=BLOX_LOGO, outline=Color3.fromRGB(80,80,80)    },
+    {name="Flame",   id=44669633, price=550,  icon=BLOX_LOGO, outline=Color3.fromRGB(220,80,20)   },
+    {name="Ice",     id=44669637, price=350,  icon=BLOX_LOGO, outline=Color3.fromRGB(160,220,255) },
+    {name="Sand",    id=44669641, price=420,  icon=BLOX_LOGO, outline=Color3.fromRGB(200,170,80)  },
+    {name="Dark",    id=44669644, price=500,  icon=BLOX_LOGO, outline=Color3.fromRGB(80,20,120)   },
+    {name="Diamond", id=44669648, price=600,  icon=BLOX_LOGO, outline=Color3.fromRGB(160,220,255) },
+    {name="Light",   id=44669651, price=650,  icon=BLOX_LOGO, outline=Color3.fromRGB(240,220,100) },
+    {name="Rubber",  id=44669655, price=750,  icon=BLOX_LOGO, outline=Color3.fromRGB(220,60,60)   },
+    {name="Barrier", id=44669659, price=800,  icon=BLOX_LOGO, outline=Color3.fromRGB(180,180,220) },
+    {name="Magma",   id=44669663, price=850,  icon=BLOX_LOGO, outline=Color3.fromRGB(200,60,20)   },
+    {name="Quake",   id=44669668, price=1000, icon=BLOX_LOGO, outline=Color3.fromRGB(160,140,100) },
+    {name="Buddha",  id=44669672, price=1650,
+        icon    = "rbxthumb://type=Asset&id=101573129815434&w=150&h=150",
+        outline = Color3.fromRGB(220,180,20)
+    },
+    {name="Love",    id=44669676, price=1300, icon=BLOX_LOGO, outline=Color3.fromRGB(255,100,160) },
+    {name="Spider",  id=44669679, price=1500, icon=BLOX_LOGO, outline=Color3.fromRGB(60,60,60)    },
+    {name="Sound",   id=44669683, price=1700, icon=BLOX_LOGO, outline=Color3.fromRGB(180,100,220) },
+    {name="Phoenix", id=44669687, price=1800, icon=BLOX_LOGO, outline=Color3.fromRGB(220,120,20)  },
+    {name="Portal",  id=44669691, price=2000,
+        icon    = "rbxthumb://type=Asset&id=78463213702905&w=150&h=150",
+        outline = Color3.fromRGB(100,180,255)
+    },
+    {name="Paw",     id=44669694, price=2000, icon=BLOX_LOGO, outline=Color3.fromRGB(220,100,140) },
+    {name="Gravity", id=44669697, price=2500, icon=BLOX_LOGO, outline=Color3.fromRGB(140,60,200)  },
+    {name="Dough",   id=44669701, price=2800, icon    = "rbxthumb://type=Asset&id=72428809899422&w=150&h=150", outline=Color3.fromRGB(220,180,100) },
+    {name="Shadow",  id=44669704, price=2900, icon=BLOX_LOGO, outline=Color3.fromRGB(80,20,120)   },
+    {name="Venom",   id=44669708, price=3000, icon=BLOX_LOGO, outline=Color3.fromRGB(60,180,40)   },
+    {name="Control", id=44669712, price=4000,
+        icon    = "rbxthumb://type=Asset&id=107615845549772&w=150&h=150",
+        outline = Color3.fromRGB(40,180,255)
+    },
+    {name="Spirit",  id=44669716, price=3400, icon=BLOX_LOGO, outline=Color3.fromRGB(255,220,80)  },
+    {name="Dragon",  id=44669720, price=5000,
+        icon    = "rbxthumb://type=Asset&id=71450863629602&w=150&h=150",
+        outline = Color3.fromRGB(180, 60, 20)
+    },
+    {name="Leopard", id=44669724, price=3500, icon=BLOX_LOGO, outline=Color3.fromRGB(200,160,20)  },
+    {name="Kitsune", id=44669728, price=4000,
+        icon    = "rbxthumb://type=Asset&id=102325862990442&w=150&h=150",
+        outline = Color3.fromRGB(20, 100, 220)
+    },
+    {name="Yeti",    id=44669730, price=3000, icon="rbxthumb://type=Asset&id=70681257475214&w=150&h=150", outline=Color3.fromRGB(160,220,255) },
+    {name="Tiger",   id=70540969542096, price=3000, icon="rbxthumb://type=Asset&id=70540969542096&w=150&h=150", outline=Color3.fromRGB(220,140,20)  },
+}
+
+
+-- ============================================================
+--  UTILITIES
+-- ============================================================
+local function fmtComma(n)
+    local s = tostring(math.floor(n))
+    local k
+    repeat s, k = s:gsub("^(-?%d+)(%d%d%d)", "%1,%2") until k == 0
+    return s
 end
 
-local function createEspGui(object, labelText)
-	local billboard = Instance.new("BillboardGui")
-	billboard.Name = "PetESP"
-	billboard.AlwaysOnTop = true
-	billboard.Size = UDim2.new(0, 200, 0, 50)
-	billboard.StudsOffset = Vector3.new(0, 2.5, 0)
-	billboard.Adornee = object
-
-	local label = Instance.new("TextLabel", billboard)
-	label.Size = UDim2.new(1, 0, 1, 0)
-	label.BackgroundTransparency = 1
-	label.TextColor3 = Color3.fromRGB(255, 255, 0)
-	label.TextScaled = false
-	label.Font = Enum.Font.Arcade
-	label.TextSize = 13
-	label.Text = labelText
-
-	billboard.Parent = game:GetService("CoreGui")
-	return billboard
+local function corner(p, r)
+    local c = Instance.new("UICorner")
+    c.CornerRadius = UDim.new(0, r or 8)
+    c.Parent = p
+    return c
 end
 
-local function addESP(egg, eggName, petName)
-	if not espEnabled then return end
-	local adornee = egg:FindFirstChildWhichIsA("BasePart") or egg.PrimaryPart
-	if adornee then
-		local gui = createEspGui(adornee, eggName .. " | " .. petName)
-		local aura = Instance.new("BoxHandleAdornment")
-		aura.Name = "RedAura"
-		aura.Adornee = adornee
-		aura.AlwaysOnTop = true
-		aura.ZIndex = 5
-		aura.Size = adornee.Size + Vector3.new(0.1, 0.1, 0.1)
-		aura.Color3 = Color3.fromRGB(255, 0, 0)
-		aura.Transparency = 0.6
-		aura.Parent = adornee
-
-		displayedEggs[egg] = {
-			egg = egg,
-			gui = gui,
-			label = gui:FindFirstChild("TextLabel"),
-			selectionBox = aura,
-			eggName = eggName,
-			currentPet = petName
-		}
-	end
+local function stroke(p, col, thick, trans)
+    local s = Instance.new("UIStroke")
+    s.Color        = col   or Color3.new(1,1,1)
+    s.Thickness    = thick or 1.5
+    s.Transparency = trans or 0.5
+    s.Parent = p
+    return s
 end
 
-local function removeESP(egg)
-	local data = displayedEggs[egg]
-	if data then
-		if data.gui then data.gui:Destroy() end
-		if data.selectionBox then data.selectionBox:Destroy() end
-		displayedEggs[egg] = nil
-	end
+local function lbl(parent, props)
+    local l = Instance.new("TextLabel")
+    l.BackgroundTransparency = 1
+    l.Font           = props.Font  or Enum.Font.GothamBold
+    l.TextSize       = props.Size  or 14
+    l.TextColor3     = props.Color or Config.TextMain
+    l.Text           = props.Text  or ""
+    l.TextXAlignment = props.Align or Enum.TextXAlignment.Left
+    l.Position       = props.Pos   or UDim2.new(0,0,0,0)
+    l.Size           = props.FS    or UDim2.new(1,0,1,0)
+    l.TextWrapped    = props.Wrap  or false
+    l.ZIndex         = props.Z     or 3
+    l.Parent         = parent
+    return l
 end
 
-for _, egg in collectionService:GetTagged("PetEggServer") do
-	local eggName = egg:GetAttribute("EggName") or "Unknown Egg"
-	local petName = getPetForEgg(eggName)
-	addESP(egg, eggName, petName)
+local function robuxIcon(parent, size, pos, z)
+    local img = Instance.new("ImageLabel")
+    img.BackgroundTransparency = 1
+    img.Image    = "rbxasset://textures/ui/common/robux@3x.png"
+    img.Size     = UDim2.fromOffset(size, size)
+    img.Position = pos or UDim2.new(0,0,0,0)
+    img.ZIndex   = z or 3
+    img.Parent   = parent
+    return img
 end
 
-collectionService:GetInstanceAddedSignal("PetEggServer"):Connect(function(egg)
-	local eggName = egg:GetAttribute("EggName") or "Unknown Egg"
-	local petName = getPetForEgg(eggName)
-	addESP(egg, eggName, petName)
+-- ============================================================
+--  PURCHASE COMPLETED MODAL
+-- ============================================================
+-- ============================================================
+--  SENDING GIFT NOTIFICATION  (top screen, clean transition)
+-- ============================================================
+local function showGiftNotification(fruitName, recipient, onDone)
+    local cleanName = fruitName:match(" (.+)$") or fruitName
+
+    local gui = Instance.new("ScreenGui")
+    gui.DisplayOrder   = 1002
+    gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    gui.Parent         = playerGui
+
+    local container = Instance.new("Frame")
+    container.Size                   = UDim2.fromOffset(600, 56)
+    container.AnchorPoint            = Vector2.new(0.5, 0)
+    container.Position               = UDim2.new(0.5, 0, 0, -70)
+    container.BackgroundTransparency = 1
+    container.BorderSizePixel        = 0
+    container.Parent                 = gui
+
+    local line1 = Instance.new("TextLabel")
+    line1.Size               = UDim2.new(1, 0, 0, 26)
+    line1.Position           = UDim2.fromOffset(0, 0)
+    line1.BackgroundTransparency = 1
+    line1.Font               = Enum.Font.GothamBold
+    line1.TextSize           = 20
+    line1.TextColor3         = Color3.fromRGB(255, 255, 255)
+    line1.TextStrokeColor3   = Color3.fromRGB(0, 0, 0)
+    line1.TextStrokeTransparency = 0.5
+    line1.TextXAlignment     = Enum.TextXAlignment.Center
+    line1.TextTransparency   = 1
+    line1.RichText           = true
+    line1.Text               = 'Sending gift <font color="rgb(255,200,50)">&lt;Permanent ' .. cleanName .. '&gt;</font> to ' .. recipient .. '...'
+    line1.Parent             = container
+
+    local line2 = Instance.new("TextLabel")
+    line2.Size               = UDim2.new(1, 0, 0, 26)
+    line2.Position           = UDim2.fromOffset(0, 26)
+    line2.BackgroundTransparency = 1
+    line2.Font               = Enum.Font.GothamBold
+    line2.TextSize           = 20
+    line2.TextColor3         = Color3.fromRGB(80, 220, 120)
+    line2.TextStrokeColor3   = Color3.fromRGB(0, 0, 0)
+    line2.TextStrokeTransparency = 0.5
+    line2.TextXAlignment     = Enum.TextXAlignment.Center
+    line2.TextTransparency   = 1
+    line2.Text               = 'Gift sent successfully!'
+    line2.Parent             = container
+
+    local slideIn  = TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    local slideOut = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+
+    -- Container starts above screen
+    container.Position = UDim2.new(0.5, 0, 0, -80)
+
+    -- Line 1 starts above, slides down into position
+    line1.Position       = UDim2.fromOffset(0, -30)
+    line1.TextTransparency = 0
+
+    -- Line 2 starts above too
+    line2.Position       = UDim2.fromOffset(0, -30)
+    line2.TextTransparency = 1
+
+    -- Slide container down
+    TweenService:Create(container, slideIn, {
+        Position = UDim2.new(0.5, 0, 0, 2)
+    }):Play()
+
+    -- Line 1 slides down into place
+    task.delay(0.05, function()
+        if not line1.Parent then return end
+        TweenService:Create(line1, slideIn, {Position = UDim2.fromOffset(0, 0)}):Play()
+    end)
+
+    -- Line 2 slides down from top after 2 sec
+    task.delay(2.0, function()
+        if not line2.Parent then return end
+        line2.TextTransparency = 0
+        line2.Position = UDim2.fromOffset(0, -30)
+        TweenService:Create(line2, slideIn, {Position = UDim2.fromOffset(0, 26)}):Play()
+        if onDone then onDone() end
+    end)
+
+    -- After 6 sec both slide UP together
+    task.delay(6.0, function()
+        if not container.Parent then return end
+        TweenService:Create(container, slideOut, {
+            Position = UDim2.new(0.5, 0, 0, -80)
+        }):Play()
+        task.delay(0.5, function() gui:Destroy() end)
+    end)
+end
+
+
+local function showPurchaseDone(productInfo, recipient, onFadeComplete)
+    recipient = recipient or "Unknown"
+
+    local gui = Instance.new("ScreenGui")
+    gui.DisplayOrder   = 999
+    gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    gui.Parent         = playerGui
+
+    local modal = Instance.new("Frame")
+    modal.Size             = UDim2.fromOffset(400, 210)
+    modal.Position         = UDim2.fromScale(0.5, 0.5)
+    modal.AnchorPoint      = Vector2.new(0.5, 0.5)
+    modal.BackgroundColor3 = Config.BgMid
+    modal.BorderSizePixel  = 0
+    modal.BackgroundTransparency = 1
+    modal.Parent           = gui
+    corner(modal, 14)
+    stroke(modal, Color3.fromRGB(90,90,100), 1.5, 0.3)
+
+    lbl(modal, {Text="Purchase Completed", Size=17, Pos=UDim2.fromOffset(20,16), FS=UDim2.new(1,-40,0,26)})
+
+    local ch = Instance.new("Frame")
+    ch.Size        = UDim2.fromOffset(54,54)
+    ch.Position    = UDim2.fromScale(0.5, 0.47)
+    ch.AnchorPoint = Vector2.new(0.5,0.5)
+    ch.BackgroundTransparency = 1
+    ch.Parent = modal
+    local circ = Instance.new("Frame")
+    circ.Size = UDim2.fromScale(1,1)
+    circ.BackgroundTransparency = 1
+    circ.Parent = ch
+    corner(circ, 100)
+    stroke(circ, Color3.fromRGB(130,130,140), 3, 0)
+    local chk = Instance.new("ImageLabel")
+    chk.Size = UDim2.fromScale(0.72,0.72)
+    chk.Position = UDim2.fromScale(0.5,0.5)
+    chk.AnchorPoint = Vector2.new(0.5,0.5)
+    chk.BackgroundTransparency = 1
+    chk.Image = "rbxassetid://3944680095"
+    chk.ImageColor3 = Color3.fromRGB(160,160,170)
+    chk.ImageTransparency = 1
+    chk.Parent = ch
+
+    lbl(modal, {
+        Text  = "You Gifted " .. productInfo.Name .. " to " .. recipient .. "!",
+        Size  = 14, Color = Config.TextSub,
+        Pos   = UDim2.fromOffset(30,122), FS = UDim2.new(1,-60,0,38),
+        Wrap  = true, Align = Enum.TextXAlignment.Center,
+        Font  = Enum.Font.GothamMedium, Z = 3,
+    })
+
+    local ok = Instance.new("TextButton")
+    ok.Size = UDim2.new(1,-40,0,36)
+    ok.Position = UDim2.fromOffset(20,162)
+    ok.BackgroundColor3 = Config.BuyAccent
+    ok.Text = "OK"
+    ok.Font = Enum.Font.GothamBold
+    ok.TextSize = 15
+    ok.TextColor3 = Color3.new(1,1,1)
+    ok.AutoButtonColor = false
+    ok.BackgroundTransparency = 1
+    ok.TextTransparency = 1
+    ok.Parent = modal
+    corner(ok, 8)
+
+    local xBtn = Instance.new("TextButton")
+    xBtn.Position = UDim2.new(1,-10,0,10)
+    xBtn.AnchorPoint = Vector2.new(1,0)
+    xBtn.Size = UDim2.fromOffset(32,32)
+    xBtn.BackgroundTransparency = 1
+    xBtn.Text = "×"
+    xBtn.Font = Enum.Font.GothamBold
+    xBtn.TextSize = 26
+    xBtn.TextColor3 = Config.TextSub
+    xBtn.TextTransparency = 1
+    xBtn.ZIndex = 10
+    xBtn.Parent = modal
+
+    -- ⚡ FAST IN (0.25s) / ULTRA FAST OUT (0.2s)
+    local tweenInfoInFast = TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+    local fadeOutUltraFast = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In) -- ⚡ 0.6s → 0.2s
+
+    -- FAST FADE IN (unchanged)
+    TweenService:Create(modal, tweenInfoInFast, {BackgroundTransparency = 0}):Play()
+    task.delay(0.1, function()
+        TweenService:Create(chk, tweenInfoInFast, {ImageTransparency = 0}):Play()
+    end)
+    task.delay(0.15, function()
+        TweenService:Create(ok, tweenInfoInFast, {BackgroundTransparency = 0, TextTransparency = 0}):Play()
+        TweenService:Create(xBtn, tweenInfoInFast, {TextTransparency = 0}):Play()
+    end)
+
+    local function fadeOutAndDestroy()
+        -- ULTRA FAST FADE OUT - ALL ELEMENTS SIMULTANEOUSLY
+        TweenService:Create(modal, fadeOutUltraFast, {BackgroundTransparency = 1}):Play()
+        TweenService:Create(chk, fadeOutUltraFast, {ImageTransparency = 1}):Play()
+        TweenService:Create(ok, fadeOutUltraFast, {BackgroundTransparency = 1, TextTransparency = 1}):Play()
+        TweenService:Create(xBtn, fadeOutUltraFast, {TextTransparency = 1}):Play()
+        
+        -- Destroy instantly after 0.2s (was 0.6s)
+        task.delay(0.15, function()
+            if gui then gui:Destroy() end
+            if onFadeComplete then onFadeComplete() end
+        end)
+    end
+
+    local function finish()
+        fadeOutAndDestroy()
+    end
+
+    ok.MouseButton1Click:Connect(finish)
+    xBtn.MouseButton1Click:Connect(finish)
+    
+    -- Auto fade out after 4 seconds (reduced from 5s for snappier feel)
+    task.delay(4.0, fadeOutAndDestroy)
+end
+
+-- ============================================================
+--  BUY ITEM MODAL  (PLS DONATE style)
+-- ============================================================
+local function showBuyModal(productInfo, recipient)
+    recipient = recipient or "Unknown"
+    local price      = productInfo.PriceInRobux or 0
+    local newBalance = math.max(Config.FakeBalance - price, 0)
+
+    local old = playerGui:FindFirstChild("HazeHub_BuyModal")
+    if old then old:Destroy() end
+
+    local gui = Instance.new("ScreenGui")
+    gui.Name           = "HazeHub_BuyModal"
+    gui.DisplayOrder   = 999
+    gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    gui.Parent         = playerGui
+
+    local modal = Instance.new("Frame")
+    -- Background fade overlay
+local fadeBg = Instance.new("Frame")
+fadeBg.Name = "FadeBG"
+fadeBg.Size = UDim2.new(1,0,1,0)
+fadeBg.Position = UDim2.new(0,0,0,0)
+fadeBg.BackgroundColor3 = Color3.new(0,0,0)
+fadeBg.BackgroundTransparency = 1
+fadeBg.BorderSizePixel = 0
+fadeBg.ZIndex = 997
+fadeBg.Parent = gui
+
+modal.Size             = UDim2.fromOffset(360, 190) -- starts smaller
+modal.Position         = UDim2.fromScale(0.5, 0.5)
+modal.AnchorPoint      = Vector2.new(0.5,0.5)
+modal.BackgroundColor3 = Config.BgMid
+modal.BorderSizePixel  = 0
+modal.BackgroundTransparency = 1
+modal.Parent           = gui
+modal.ZIndex           = 999
+
+-- Smooth intro animation
+TweenService:Create(fadeBg,
+    TweenInfo.new(0.25, Enum.EasingStyle.Quad),
+    {BackgroundTransparency = 0.15}
+):Play()
+
+task.delay(0.05, function()
+    TweenService:Create(modal,
+        TweenInfo.new(0.28, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+        {
+            Size = UDim2.fromOffset(420, 226),
+            BackgroundTransparency = 0
+        }
+    ):Play()
+end)
+    corner(modal, 14)
+    stroke(modal, Color3.fromRGB(90,90,100), 1.5, 0.3)
+
+    -- Title
+    lbl(modal, {Text="Buy Item", Size=18, Pos=UDim2.fromOffset(20,14), FS=UDim2.new(1,-80,0,28)})
+
+    -- X button
+    local xBtn = Instance.new("TextButton")
+    xBtn.Position = UDim2.new(1,-10,0,10)
+    xBtn.AnchorPoint = Vector2.new(1,0)
+    xBtn.Size = UDim2.fromOffset(32,32)
+    xBtn.BackgroundTransparency = 1
+    xBtn.Text = "×"
+    xBtn.Font = Enum.Font.GothamBold
+    xBtn.TextSize = 26
+    xBtn.TextColor3 = Config.TextSub
+    xBtn.ZIndex = 25
+    xBtn.Parent = modal
+    xBtn.MouseButton1Click:Connect(function()
+    TweenService:Create(fadeBg,
+        TweenInfo.new(0.18),
+        {BackgroundTransparency = 1}
+    ):Play()
+
+    TweenService:Create(modal,
+        TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
+        {
+            Size = UDim2.fromOffset(360,190),
+            BackgroundTransparency = 1
+        }
+    ):Play()
+
+    task.delay(0.18, function()
+        gui:Destroy()
+    end)
 end)
 
-collectionService:GetInstanceRemovedSignal("PetEggServer"):Connect(removeESP)
+    -- Balance
+    local balFrame = Instance.new("Frame")
+    balFrame.Position = UDim2.new(1,-44,0,14)
+    balFrame.AnchorPoint = Vector2.new(1,0)
+    balFrame.Size = UDim2.fromOffset(0,24)
+    balFrame.AutomaticSize = Enum.AutomaticSize.X
+    balFrame.BackgroundTransparency = 1
+    balFrame.ZIndex = 5
+    balFrame.Parent = modal
+    robuxIcon(balFrame, 18, UDim2.fromOffset(0,5), 5)
+    local balTxt = Instance.new("TextLabel")
+    balTxt.BackgroundTransparency = 1
+    balTxt.Position = UDim2.fromOffset(22,0)
+    balTxt.Size = UDim2.new(0,0,1,0)
+    balTxt.AutomaticSize = Enum.AutomaticSize.X
+    balTxt.Text = fmtComma(Config.FakeBalance)
+    balTxt.Font = Enum.Font.GothamBold
+    balTxt.TextSize = 14
+    balTxt.TextColor3 = Config.TextMain
+    balTxt.ZIndex = 5
+    balTxt.Parent = balFrame
 
--- MAIN GUI
-local gui = Instance.new("ScreenGui", localPlayer:WaitForChild("PlayerGui"))
-gui.Name = "PetPredictorUI"
-gui.ResetOnSpawn = false
+    -- Product row
+    local row = Instance.new("Frame")
+    row.Position = UDim2.fromOffset(20,55)
+    row.Size = UDim2.new(1,-40,0,70)
+    row.BackgroundTransparency = 1
+    row.Parent = modal
 
-local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0, 260, 0, 280)
-frame.Position = UDim2.new(0.5, -130, 0.3, 0)
-frame.BackgroundColor3 = Color3.fromRGB(30, 20, 50)
-frame.BorderSizePixel = 0
-frame.Active = true
-frame.Draggable = true
-Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 4)
+    local iconFrame = Instance.new("Frame")
+    iconFrame.Size = UDim2.fromOffset(66,66)
+    iconFrame.BackgroundColor3 = Config.BgDark
+    iconFrame.BorderSizePixel = 0
+    iconFrame.Parent = row
+    corner(iconFrame, 10)
 
-local title = Instance.new("TextLabel", frame)
-title.Size = UDim2.new(1, -30, 0, 30)
-title.Position = UDim2.new(0, 10, 0, 6)
-title.BackgroundTransparency = 1
-title.Text = "🥚 Egg Randomizer"
-title.TextColor3 = Color3.fromRGB(170, 255, 170)
-title.Font = Enum.Font.Arcade
-title.TextSize = 20
-title.TextXAlignment = Enum.TextXAlignment.Left
+    local iconImg = Instance.new("ImageLabel")
+    iconImg.Size = UDim2.fromOffset(58,58)
+    iconImg.AnchorPoint = Vector2.new(0.5,0.5)
+    iconImg.Position = UDim2.fromScale(0.5,0.5)
+    iconImg.BackgroundTransparency = 1
+    iconImg.Image = productInfo.Icon or BLOX_LOGO
+    iconImg.ScaleType = Enum.ScaleType.Fit
+    iconImg.Parent = iconFrame
 
-local close = Instance.new("TextButton", frame)
-close.Size = UDim2.new(0, 24, 0, 24)
-close.Position = UDim2.new(1, -30, 0, 10)
-close.Text = "X"
-close.TextColor3 = Color3.new(1, 1, 1)
-close.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
-close.Font = Enum.Font.Arcade
-close.TextSize = 16
-Instance.new("UICorner", close).CornerRadius = UDim.new(0, 4)
+    -- Text column
+    local textCol = Instance.new("Frame")
+    textCol.Position = UDim2.fromOffset(78,0)
+    textCol.Size = UDim2.new(1,-78,1,0)
+    textCol.BackgroundTransparency = 1
+    textCol.Parent = row
 
--- Buttons
-local predict = Instance.new("TextButton", frame)
-predict.Size = UDim2.new(0, 220, 0, 36)
-predict.Position = UDim2.new(0.5, -110, 0, 50)
-predict.BackgroundColor3 = Color3.fromRGB(60, 90, 60)
-predict.TextColor3 = Color3.new(1, 1, 1)
-predict.Font = Enum.Font.Arcade
-predict.TextSize = 16
-predict.Text = "🎲 Reroll Egg"
-Instance.new("UICorner", predict).CornerRadius = UDim.new(0, 4)
+    lbl(textCol, {Text=productInfo.Name, Size=16, Pos=UDim2.fromOffset(0,6), FS=UDim2.new(1,0,0,24)})
 
-predict.MouseButton1Click:Connect(function()
-	if not canClick then return end
-	canClick = false
-	for _, data in pairs(displayedEggs) do
-		local newPet = getPetForEgg(data.eggName)
-		data.currentPet = newPet
-		if data.label then
-			data.label.Text = string.format("%s | %s (Cooldown...)", data.eggName, newPet)
-		end
-	end
-	task.spawn(function()
-		local startTime = tick()
-		while tick() - startTime < cooldown do
-			local timeLeft = cooldown - (tick() - startTime)
-			for _, data in pairs(displayedEggs) do
-				if data.label then
-					data.label.Text = string.format("%s | %s (%.2fs)", data.eggName, data.currentPet, timeLeft)
-				end
-			end
-			task.wait(0.1)
-		end
-		for _, data in pairs(displayedEggs) do
-			if data.label then
-				data.label.Text = string.format("%s | %s", data.eggName, data.currentPet)
-			end
-		end
-		canClick = true
-	end)
+    local priceRow = Instance.new("Frame")
+    priceRow.Position = UDim2.fromOffset(0,38)
+    priceRow.Size = UDim2.fromOffset(140,22)
+    priceRow.BackgroundTransparency = 1
+    priceRow.Parent = textCol
+    robuxIcon(priceRow, 18, UDim2.fromOffset(0,2))
+    lbl(priceRow, {Text=fmtComma(price), Size=15, Pos=UDim2.fromOffset(22,0), FS=UDim2.new(1,-22,1,0)})
+
+    -- Confirm button with fill animation
+    local buyBtn = Instance.new("TextButton")
+    buyBtn.Position = UDim2.fromOffset(20,140)
+    buyBtn.Size = UDim2.new(1,-40,0,40)
+    buyBtn.BackgroundColor3 = Config.BuyAccentDark
+    buyBtn.AutoButtonColor = false
+    buyBtn.Text = ""
+    buyBtn.Active = false
+    buyBtn.Parent = modal
+    corner(buyBtn, 8)
+
+    local fillBar = Instance.new("Frame")
+    fillBar.Size = UDim2.new(0,0,1,0)
+    fillBar.BackgroundColor3 = Config.BuyAccent
+    fillBar.BorderSizePixel = 0
+    fillBar.ZIndex = 2
+    fillBar.Parent = buyBtn
+    corner(fillBar, 8)
+
+    local buyLbl = lbl(buyBtn, {Text="Buy", Size=15, Z=3, Align=Enum.TextXAlignment.Center})
+
+
+
+    task.spawn(function()
+        task.wait(0.5)
+        if not fillBar or not fillBar.Parent then return end
+        local tw = TweenService:Create(fillBar,
+            TweenInfo.new(2.8, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
+            {Size = UDim2.new(1,0,1,0)})
+        tw:Play()
+        tw.Completed:Wait()
+        if buyBtn and buyBtn.Parent then
+            buyBtn.Active = true
+            buyLbl.Text   = "Buy"
+        end
+    end)
+
+    buyBtn.MouseButton1Click:Connect(function()
+        if not buyBtn.Active then return end
+        Config.FakeBalance = newBalance
+
+buyBtn.Active = false
+buyLbl.Text = "Processing Purchase..."
+
+-- Disable X button
+xBtn.Active = false
+
+-- Smooth button flash
+TweenService:Create(fillBar,
+    TweenInfo.new(0.15),
+    {BackgroundColor3 = Color3.fromRGB(0,170,255)}
+):Play()
+
+-- Slight delay like real Blox Fruits
+task.wait(1)
+
+-- Fade modal away smoothly
+TweenService:Create(fadeBg,
+    TweenInfo.new(0.25),
+    {BackgroundTransparency = 1}
+):Play()
+
+TweenService:Create(modal,
+    TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
+    {
+        Size = UDim2.fromOffset(390,210),
+        BackgroundTransparency = 1
+    }
+):Play()
+
+task.delay(0.25, function()
+    gui:Destroy()
+
+    -- Notification first
+    showGiftNotification(productInfo.Name, recipient, nil)
+
+    -- Then purchase complete popup
+    task.delay(1, function()
+        showPurchaseDone(productInfo, recipient)
+    end)
 end)
 
-local espBtn = Instance.new("TextButton", frame)
-espBtn.Size = UDim2.new(0, 220, 0, 30)
-espBtn.Position = UDim2.new(0.5, -110, 0, 90)
-espBtn.BackgroundColor3 = Color3.fromRGB(90, 60, 60)
-espBtn.TextColor3 = Color3.new(1, 1, 1)
-espBtn.Font = Enum.Font.Arcade
-espBtn.TextSize = 14
-espBtn.Text = "ESP: ON"
-Instance.new("UICorner", espBtn).CornerRadius = UDim.new(0, 4)
+-- ============================================================
+--  HELPERS
+-- ============================================================
+local function findFruitByName(text)
+    local lower = (text or ""):lower()
+    for _, f in ipairs(Fruits) do
+        if lower:find(f.name:lower(), 1, true) then return f end
+    end
+    return nil
+end
 
-espBtn.MouseButton1Click:Connect(function()
-	espEnabled = not espEnabled
-	espBtn.Text = "ESP: " .. (espEnabled and "ON" or "OFF")
-	for _, data in pairs(displayedEggs) do
-		local adornee = data.egg:FindFirstChildWhichIsA("BasePart") or data.egg.PrimaryPart
-		if espEnabled then
-			if not data.gui or not data.gui.Parent then
-				local newGui = createEspGui(adornee, data.eggName .. " | " .. data.currentPet)
-				data.gui = newGui
-				data.label = newGui:FindFirstChild("TextLabel")
-			end
-			if adornee and not adornee:FindFirstChild("RedAura") then
-				local aura = Instance.new("BoxHandleAdornment")
-				aura.Name = "RedAura"
-				aura.Adornee = adornee
-				aura.Size = adornee.Size
-				aura.Color3 = Color3.fromRGB(255, 0, 0)
-				aura.Transparency = 0.6
-				aura.AlwaysOnTop = true
-				aura.ZIndex = 10
-				aura.Parent = adornee
-			end
-		else
-			if data.gui then data.gui:Destroy() end
-			if adornee and adornee:FindFirstChild("RedAura") then
-				adornee.RedAura:Destroy()
-			end
-		end
-	end
+local function findFruitById(id)
+    for _, f in ipairs(Fruits) do
+        if f.id == id then return f end
+    end
+    return nil
+end
+
+local function fruitToProductInfo(fruit)
+    return {
+        Name         = fruit.name,
+        AssetId      = fruit.id,
+        PriceInRobux = fruit.price,
+        Icon         = fruit.icon,
+        Outline      = fruit.outline,
+    }
+end
+
+-- ============================================================
+--  SETTINGS GUI
+-- ============================================================
+local PANEL_W, PANEL_H = 240, 160
+-- Island starts at middle LEFT
+local ISLAND_X_OFF = 16
+local ISLAND_Y_OFF = -28
+
+local settingsGui = Instance.new("ScreenGui")
+settingsGui.Name           = "HazeHub_Settings"
+settingsGui.DisplayOrder   = 998
+settingsGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+settingsGui.ResetOnSpawn   = false
+settingsGui.Parent         = playerGui
+
+-- H island button — middle left
+local island = Instance.new("TextButton")
+island.Size          = UDim2.fromOffset(56, 56)
+island.Position      = UDim2.new(0, ISLAND_X_OFF, 0.5, ISLAND_Y_OFF)
+island.BackgroundColor3 = Color3.fromRGB(14,14,20)
+island.Text          = ""
+island.AutoButtonColor = false
+island.ZIndex        = 30
+island.Parent        = settingsGui
+corner(island, 100)
+
+local glow = Instance.new("ImageLabel")
+glow.Size               = UDim2.fromOffset(80,80)
+glow.AnchorPoint        = Vector2.new(0.5,0.5)
+glow.Position           = UDim2.fromScale(0.5,0.5)
+glow.BackgroundTransparency = 1
+glow.Image              = "rbxassetid://5028857084"
+glow.ImageColor3        = Color3.fromRGB(255,38,38)
+glow.ImageTransparency  = 0.4
+glow.ZIndex             = 29
+glow.Parent             = island
+
+lbl(island, {Text="H", Size=28, Font=Enum.Font.GothamBlack,
+    Color=Color3.fromRGB(255,38,38), Align=Enum.TextXAlignment.Center, Z=31})
+
+local ring = Instance.new("UIStroke")
+ring.Color       = Color3.fromRGB(255,38,38)
+ring.Thickness   = 2.5
+ring.Transparency = 0.3
+ring.Parent      = island
+
+task.spawn(function()
+    while island.Parent do
+        TweenService:Create(ring, TweenInfo.new(0.6,Enum.EasingStyle.Sine,Enum.EasingDirection.InOut),{Transparency=0.8}):Play()
+        task.wait(0.6)
+        TweenService:Create(ring, TweenInfo.new(0.6,Enum.EasingStyle.Sine,Enum.EasingDirection.InOut),{Transparency=0.1}):Play()
+        task.wait(0.6)
+    end
 end)
 
-local autoBtn = Instance.new("TextButton", frame)
-autoBtn.Size = UDim2.new(0, 220, 0, 30)
-autoBtn.Position = UDim2.new(0.5, -110, 0, 125)
-autoBtn.BackgroundColor3 = Color3.fromRGB(90, 60, 90)
-autoBtn.TextColor3 = Color3.new(1, 1, 1)
-autoBtn.Font = Enum.Font.Arcade
-autoBtn.TextSize = 14
-autoBtn.Text = "Auto Reroll: OFF"
-Instance.new("UICorner", autoBtn).CornerRadius = UDim.new(0, 4)
+-- Panel
+local panel = Instance.new("Frame")
+panel.Size             = UDim2.fromOffset(PANEL_W, PANEL_H)
+panel.BackgroundColor3 = Config.BgMid
+panel.BorderSizePixel  = 0
+panel.Visible          = false
+panel.ZIndex           = 20
+panel.Parent           = settingsGui
+corner(panel, 12)
+stroke(panel, Color3.fromRGB(255,38,38), 1.5, 0.6)
 
-autoBtn.MouseButton1Click:Connect(function()
-	autoReroll = not autoReroll
-	autoBtn.Text = "Auto Reroll: " .. (autoReroll and "ON" or "OFF")
+local function updatePanelPos()
+    local ix = island.Position.X.Offset
+    local iy = island.Position.Y.Offset
+    panel.Position = UDim2.new(0, ix + 64, 0.5, iy - PANEL_H/2 + 28)
+end
+updatePanelPos()
+
+-- Panel header
+local ph = Instance.new("Frame")
+ph.Size             = UDim2.new(1,0,0,40)
+ph.BackgroundColor3 = Config.PanelRedDark
+ph.BorderSizePixel  = 0
+ph.ZIndex           = 21
+ph.Parent           = panel
+corner(ph, 12)
+local phFix = Instance.new("Frame")
+phFix.Size             = UDim2.new(1,0,0.5,0)
+phFix.Position         = UDim2.new(0,0,0.5,0)
+phFix.BackgroundColor3 = Config.PanelRedDark
+phFix.BorderSizePixel  = 0
+phFix.ZIndex           = 21
+phFix.Parent           = ph
+
+lbl(ph, {Text="HazeHub  •  Blox Fruits", Size=13, Font=Enum.Font.GothamBlack,
+    Color=Color3.fromRGB(255,38,38), Pos=UDim2.fromOffset(12,0), Z=22})
+
+local panelClose = Instance.new("TextButton")
+panelClose.Size               = UDim2.fromOffset(36,20)
+panelClose.Position           = UDim2.new(1,-40,0.5,0)
+panelClose.AnchorPoint        = Vector2.new(0,0.5)
+panelClose.BackgroundTransparency = 1
+panelClose.Text               = "close"
+panelClose.Font               = Enum.Font.Gotham
+panelClose.TextSize           = 11
+panelClose.TextColor3         = Config.TextSub
+panelClose.ZIndex             = 22
+panelClose.Parent             = ph
+
+-- Balance label + box
+lbl(panel, {Text="R$  FAKE BALANCE", Size=10, Color=Config.TextSub,
+    Pos=UDim2.fromOffset(16,50), FS=UDim2.new(1,-32,0,14), Z=22})
+
+local balBox = Instance.new("TextBox")
+balBox.Size               = UDim2.new(1,-32,0,32)
+balBox.Position           = UDim2.fromOffset(16,66)
+balBox.BackgroundColor3   = Config.BgDark
+balBox.BorderSizePixel    = 0
+balBox.Text               = tostring(Config.FakeBalance)
+balBox.PlaceholderText    = "e.g. 5000000"
+balBox.Font               = Enum.Font.GothamMedium
+balBox.TextSize           = 13
+balBox.TextColor3         = Config.TextMain
+balBox.PlaceholderColor3  = Config.TextSub
+balBox.ClearTextOnFocus   = false
+balBox.ZIndex             = 22
+balBox.Parent             = panel
+corner(balBox, 6)
+stroke(balBox, Color3.fromRGB(255,38,38), 1, 0.65)
+
+-- Apply button
+local applyBtn = Instance.new("TextButton")
+applyBtn.Size             = UDim2.new(1,-32,0,32)
+applyBtn.Position         = UDim2.fromOffset(16,108)
+applyBtn.BackgroundColor3 = Config.PanelRed
+applyBtn.Text             = "✔  Apply"
+applyBtn.Font             = Enum.Font.GothamBlack
+applyBtn.TextSize         = 13
+applyBtn.TextColor3       = Color3.new(1,1,1)
+applyBtn.AutoButtonColor  = false
+applyBtn.ZIndex           = 22
+applyBtn.Parent           = panel
+corner(applyBtn, 8)
+
+local applyDebounce = false
+applyBtn.MouseButton1Click:Connect(function()
+    if applyDebounce then return end
+    applyDebounce = true
+    local raw = balBox.Text:gsub("[,%s]","")
+    local v = tonumber(raw)
+    if v and v > 0 then
+        Config.FakeBalance = v
+    end
+    applyBtn.Text             = "✔  Applied!"
+    applyBtn.BackgroundColor3 = Color3.fromRGB(20, 180, 80)
+    task.delay(1.5, function()
+        if not applyBtn or not applyBtn.Parent then return end
+        applyBtn.Text             = "✔  Apply"
+        applyBtn.BackgroundColor3 = Config.PanelRed
+        applyDebounce = false
+    end)
+end)
+
+-- Open/close
+local panelOpen = false
+
+island.MouseButton1Click:Connect(function()
+    if panelOpen then return end
+    panelOpen = true
+    updatePanelPos()
+    panel.Size    = UDim2.fromOffset(0, 0)
+    panel.Visible = true
+    TweenService:Create(panel, TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+        {Size = UDim2.fromOffset(PANEL_W, PANEL_H)}):Play()
+end)
+
+panelClose.MouseButton1Click:Connect(function()
+    panelOpen = false
+    TweenService:Create(panel, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
+        {Size = UDim2.fromOffset(0, 0)}):Play()
+    task.delay(0.25, function() panel.Visible = false end)
+end)
+
+-- Draggable
+do
+    local dragging  = false
+    local dragStart = nil
+    local startPos  = nil
+    local dragMoved = false
+
+    island.InputBegan:Connect(function(i)
+        if i.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging  = true
+            dragMoved = false
+            dragStart = i.Position
+            startPos  = island.Position
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(i)
+        if not dragging then return end
+        if i.UserInputType == Enum.UserInputType.MouseMovement then
+            local d = i.Position - dragStart
+            if math.abs(d.X) > 6 or math.abs(d.Y) > 6 then
+                dragMoved = true
+                island.Position = UDim2.new(
+                    startPos.X.Scale, startPos.X.Offset + d.X,
+                    startPos.Y.Scale, startPos.Y.Offset + d.Y
+                )
+                updatePanelPos()
+            end
+        end
+    end)
+    UserInputService.InputEnded:Connect(function(i)
+        if i.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+end
+
+-- ============================================================
+--  HOOK
+-- ============================================================
+local hookedBtns    = {}
+local lastFruit     = nil
+local lastRecipient = ""
+
+local function scanGiftingLabel()
+    for _, desc in ipairs(playerGui:GetDescendants()) do
+        if (desc:IsA("TextLabel") or desc:IsA("TextButton")) then
+            local t = desc.Text or ""
+            if t:find("Gifting") and t:find("Permanent") then
+                local f = findFruitByName(t)
+                if f then lastFruit = f end
+                local u = t:match("%[(.-)%]")
+                if u and u ~= "" then lastRecipient = u end
+            end
+        end
+    end
+end
+
+-- Scan multiple times to make sure we catch the recipient
+local function scanUntilRecipient()
+    for i = 1, 8 do
+        scanGiftingLabel()
+        if lastRecipient ~= "" then return end
+        task.wait(0.05)
+    end
+end
+
+-- LAYER 1: hookmetamethod — block at engine level before anything fires
+pcall(function()
+    local old
+    old = hookmetamethod(game, "__namecall", newcclosure(function(self, ...)
+        local method = getnamecallmethod()
+        if self == MarketplaceService and
+           (method == "PromptGamePassPurchase" or
+            method == "PromptProductPurchase"  or
+            method == "PromptPurchase") then
+            scanUntilRecipient()
+            local id    = tonumber(select(2, ...))
+            local fruit = (id and findFruitById(id)) or lastFruit
+            if fruit then
+                local r = lastRecipient ~= "" and lastRecipient or "Unknown"
+                task.delay(2, function()
+    if fruit then
+        showBuyModal(fruitToProductInfo(fruit), r)
+    end
+end)
+                return  -- BLOCK — never reaches Roblox
+            end
+        end
+        return old(self, ...)
+    end))
+end)
+
+-- LAYER 2: watch for Roblox's own purchase prompt ScreenGui and nuke it
+local ROBLOX_PURCHASE_GUIS = {
+    ["RobloxPromptGui"] = true,
+    ["PurchasePrompt"]  = true,
+    ["RobuxPurchase"]   = true,
+}
+task.spawn(function()
+    while true do
+        task.wait(0.05)
+        for _, sg in ipairs(playerGui:GetChildren()) do
+            if sg:IsA("ScreenGui") and ROBLOX_PURCHASE_GUIS[sg.Name] then
+                scanUntilRecipient()
+                local fruit = lastFruit
+                local r     = lastRecipient ~= "" and lastRecipient or "Unknown"
+                sg:Destroy()
+                if fruit then
+                    task.delay(2, function()
+    if fruit then
+        showBuyModal(fruitToProductInfo(fruit), r)
+    end
+end)
+                end
+            end
+        end
+    end
+end)
+
+-- LAYER 3: overlay on every button inside BF's gift modal
+local function hookConfirmButton(btn)
+    if not (btn:IsA("TextButton") or btn:IsA("ImageButton")) then return end
+    if hookedBtns[btn] then return end
+    if btn:IsDescendantOf(settingsGui) then return end
+    local sg = btn:FindFirstAncestorWhichIsA("ScreenGui")
+    if sg and sg.Name:find("HazeHub") then return end
+    if btn:FindFirstChild("_HazeOverlay") then return end
+
+    local text = (btn.Text or ""):lower()
+    local name = (btn.Name or ""):lower()
+
+    -- Target ANY button inside a frame that contains "Send a Gift" or "Gifting"
+    local isInsideGiftModal = false
+    local p = btn.Parent
+    for _ = 1, 8 do
+        if not p then break end
+        if p:IsA("TextLabel") or p:IsA("TextButton") then
+            local t = (p.Text or ""):lower()
+            if t:find("send a gift") or t:find("gifting") then
+                isInsideGiftModal = true
+                break
+            end
+        end
+        for _, c in ipairs(p:GetChildren()) do
+            if (c:IsA("TextLabel") or c:IsA("TextButton")) then
+                local t = (c.Text or ""):lower()
+                if t:find("send a gift") or t:find("gifting") then
+                    isInsideGiftModal = true
+                    break
+                end
+            end
+        end
+        if isInsideGiftModal then break end
+        p = p.Parent
+    end
+
+    -- Also match by button characteristics: gift emoji + number = confirm button
+    local isConfirm = text:find("🎁") and text:match("%d%d%d+")
+    local isNamedConfirm = name:find("buy") or name:find("confirm") or name:find("purchase") or name:find("gift")
+
+    if not (isInsideGiftModal or isConfirm or isNamedConfirm) then return end
+
+    hookedBtns[btn] = true
+    btn.MouseEnter:Connect(function() scanGiftingLabel() end)
+
+    local overlay = Instance.new("TextButton")
+    overlay.Name = "_HazeOverlay"
+    overlay.Size = UDim2.fromScale(1,1)
+    overlay.BackgroundTransparency = 1
+    overlay.Text = ""
+    overlay.ZIndex = (btn.ZIndex or 1) + 50
+    overlay.Parent = btn
+
+    pcall(function()
+        if getconnections then
+            for _,c in ipairs(getconnections(btn.MouseButton1Click)) do pcall(function() c:Disable() end) end
+            for _,c in ipairs(getconnections(btn.Activated))         do pcall(function() c:Disable() end) end
+        end
+    end)
+
+    overlay.MouseButton1Click:Connect(function()
+        scanUntilRecipient()
+        local fruit = lastFruit
+        local r     = lastRecipient ~= "" and lastRecipient or "Unknown"
+        if fruit then
+    task.delay(2, function()
+        if fruit then
+            showBuyModal(fruitToProductInfo(fruit), r)
+        end
+    end)
+end
+    end)
+end
+
+local function scanAll()
+    for _, v in ipairs(playerGui:GetDescendants()) do
+        task.defer(function() if v and v.Parent then hookConfirmButton(v) end end)
+    end
+end
+
+scanAll()
+playerGui.DescendantAdded:Connect(function(d)
+    task.delay(0.05, function()
+        if d and d.Parent then hookConfirmButton(d) end
+        if (d:IsA("TextLabel") or d:IsA("TextButton")) then
+            local t = d.Text or ""
+            if t:find("Gifting") and t:find("Permanent") then scanGiftingLabel() end
+        end
+    end)
 end)
 
 task.spawn(function()
-	while true do
-		task.wait(cooldown)
-		if autoReroll and canClick then
-			predict:Activate()
-		end
-	end
+    while true do task.wait(0.3) scanGiftingLabel() end
 end)
 
--- Credits
-local credits = Instance.new("TextLabel", frame)
-credits.Size = UDim2.new(1, 0, 0, 20)
-credits.Position = UDim2.new(0, 0, 1, -20)
-credits.BackgroundTransparency = 1
-credits.Text = "made by: Wolyoung"
-credits.Font = Enum.Font.Arcade
-credits.TextSize = 13
-credits.TextColor3 = Color3.fromRGB(200, 200, 200)
-
--- UI toggle
-local showBtn = Instance.new("TextButton", gui)
-showBtn.Size = UDim2.new(0, 100, 0, 36)
-showBtn.Position = UDim2.new(0, 20, 0.5, -18)
-showBtn.Text = "Show UI"
-showBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 70)
-showBtn.TextColor3 = Color3.new(1, 1, 1)
-showBtn.Font = Enum.Font.Arcade
-showBtn.TextSize = 16
-Instance.new("UICorner", showBtn).CornerRadius = UDim.new(0, 4)
-showBtn.Visible = false
-
-close.MouseButton1Click:Connect(function()
-	frame.Visible = false
-	showBtn.Visible = true
-end)
-
-showBtn.MouseButton1Click:Connect(function()
-	frame.Visible = true
-	showBtn.Visible = false
-end)
-
--- === Set Pet Age to 50 Section ===
-local petInfo = Instance.new("TextLabel", frame)
-petInfo.Text = "Equipped Pet: [None]"
-petInfo.Font = Enum.Font.Arcade
-petInfo.TextSize = 14
-petInfo.TextColor3 = Color3.fromRGB(255, 255, 150)
-petInfo.BackgroundTransparency = 1
-petInfo.Position = UDim2.new(0.05, 0, 0, 160)
-petInfo.Size = UDim2.new(0.9, 0, 0, 20)
-petInfo.TextScaled = true
-petInfo.TextWrapped = true
-
-local ageButton = Instance.new("TextButton", frame)
-ageButton.Size = UDim2.new(0.9, 0, 0, 35)
-ageButton.Position = UDim2.new(0.05, 0, 0, 185)
-ageButton.BackgroundColor3 = Color3.fromRGB(40, 43, 74)
-ageButton.Text = "Set Equipped Pet Age to 50"
-ageButton.Font = Enum.Font.Arcade
-ageButton.TextSize = 16
-ageButton.TextColor3 = Color3.new(1, 1, 1)
-ageButton.AutoButtonColor = false
-Instance.new("UICorner", ageButton).CornerRadius = UDim.new(0, 6)
-
-local function getEquippedPetTool()
-	local character = localPlayer.Character or localPlayer.CharacterAdded:Wait()
-	for _, child in pairs(character:GetChildren()) do
-		if child:IsA("Tool") and child.Name:find("Age") then
-			return child
-		end
-	end
-	return nil
-end
-
-local function updateEquippedPetText()
-	local pet = getEquippedPetTool()
-	if pet then
-		petInfo.Text = "Equipped Pet: " .. pet.Name
-	else
-		petInfo.Text = "Equipped Pet: [None]"
-	end
-end
-
-ageButton.MouseButton1Click:Connect(function()
-	local tool = getEquippedPetTool()
-	if tool then
-		for i = 5, 1, -1 do
-			ageButton.Text = "Setting age in " .. i .. "..."
-			task.wait(1)
-		end
-		local newName = tool.Name:gsub("%[Age%s%d+%]", "[Age 50]")
-		tool.Name = newName
-		petInfo.Text = "Equipped Pet: " .. tool.Name
-		ageButton.Text = "Set Equipped Pet Age to 50"
-	else
-		ageButton.Text = "No Pet Equipped!"
-		wait(2)
-		ageButton.Text = "Set Equipped Pet Age to 50"
-	end
-end)
-
-task.spawn(function()
-	while true do
-		task.wait(1)
-		updateEquippedPetText()
-	end
-end)
+print("[HazeHub] Loaded! Go to Permanent Fruit Shop → Gift → pick user → click price button.") 
