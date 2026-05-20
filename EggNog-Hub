@@ -308,13 +308,13 @@ local function showPurchaseDone(productInfo, recipient, onFadeComplete)
     corner(ok, 8)
 
     local xBtn = Instance.new("TextButton")
-    xBtn.Position = UDim2.new(1,-10,0,10)
+    xBtn.Position = UDim2.new(1,-12,0,10)
     xBtn.AnchorPoint = Vector2.new(1,0)
-    xBtn.Size = UDim2.fromOffset(32,32)
+    xBtn.Size = UDim2.fromOffset(34,34)
     xBtn.BackgroundTransparency = 1
     xBtn.Text = "×"
     xBtn.Font = Enum.Font.GothamBold
-    xBtn.TextSize = 26
+    xBtn.TextSize = 28
     xBtn.TextColor3 = Config.TextSub
     xBtn.TextTransparency = 1
     xBtn.ZIndex = 10
@@ -380,12 +380,13 @@ local function showBuyModal(productInfo, recipient)
     -- Background fade overlay
 local fadeBg = Instance.new("Frame")
 fadeBg.Size = UDim2.fromScale(1,1)
-fadeBg.Position = UDim2.fromScale(0,0)
+fadeBg.BackgroundColor3 = Color3.new(0,0,0)
+fadeBg.BackgroundTransparency = 1
 fadeBg.BorderSizePixel = 0
 fadeBg.ZIndex = 998
 fadeBg.Parent = gui
 
-modal.Size             = UDim2.fromOffset(360, 190) -- starts smaller
+modal.Size             = UDim2.fromOffset(400, 210) -- starts smaller
 modal.Position         = UDim2.fromScale(0.5, 0.5)
 modal.AnchorPoint      = Vector2.new(0.5,0.5)
 modal.BackgroundColor3 = Config.BgMid
@@ -397,14 +398,14 @@ modal.ZIndex           = 999
 -- Smooth intro animation
 TweenService:Create(fadeBg,
     TweenInfo.new(0.25, Enum.EasingStyle.Quad),
-    {BackgroundTransparency = 0.15}
+    {BackgroundTransparency = 0.35}
 ):Play()
 
 task.delay(0.05, function()
     TweenService:Create(modal,
         TweenInfo.new(0.28, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
         {
-            Size = UDim2.fromOffset(420, 226),
+            Size = UDim2.fromOffset(400, 210),
             BackgroundTransparency = 0
         }
     ):Play()
@@ -417,13 +418,13 @@ end)
 
     -- X button
     local xBtn = Instance.new("TextButton")
-    xBtn.Position = UDim2.new(1,-10,0,10)
+    xBtn.Position = UDim2.new(1,-12,0,10)
     xBtn.AnchorPoint = Vector2.new(1,0)
-    xBtn.Size = UDim2.fromOffset(32,32)
+    xBtn.Size = UDim2.fromOffset(34,34)
     xBtn.BackgroundTransparency = 1
     xBtn.Text = "×"
     xBtn.Font = Enum.Font.GothamBold
-    xBtn.TextSize = 26
+    xBtn.TextSize = 28
     xBtn.TextColor3 = Config.TextSub
     xBtn.ZIndex = 25
     xBtn.Parent = modal
@@ -470,7 +471,7 @@ end)
 
     -- Product row
     local row = Instance.new("Frame")
-    row.Position = UDim2.fromOffset(20,55)
+    row.Position = UDim2.fromOffset(20,50)
     row.Size = UDim2.new(1,-40,0,70)
     row.BackgroundTransparency = 1
     row.Parent = modal
@@ -510,7 +511,7 @@ end)
 
     -- Confirm button with fill animation
     local buyBtn = Instance.new("TextButton")
-    buyBtn.Position = UDim2.fromOffset(20,140)
+    buyBtn.Position = UDim2.fromOffset(20,162)
     buyBtn.Size = UDim2.new(1,-40,0,40)
     buyBtn.BackgroundColor3 = Config.BuyAccentDark
     buyBtn.AutoButtonColor = false
